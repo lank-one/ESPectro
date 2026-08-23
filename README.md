@@ -14,3 +14,13 @@
 🚧 **Work in progress** — hardware and documentation are still being built.
 
 A DIY multi-function pentesting device built on the [ESP-HACK](https://github.com/Teapot174/ESP-HACK) firmware.
+
+## Project Status
+
+- [x] Components selected and ordered (BOM)
+- [x] Wiring / pinout design documented
+- [ ] Physical breadboard assembly — in progress, currently blocked: waiting on a second 830-point breadboard (the first one ran out of free pins for the full wiring)
+- [ ] Firmware flashing (ESP-HACK)
+- [ ] Per-module wiring verification (display, CC1101, IR, SD)
+- [ ] Enclosure / final integration
+- [ ] Full documentation (BOM, wiring guide, install steps, legal disclaimer)
