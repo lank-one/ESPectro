@@ -1,2 +1,9 @@
 # ESPectro
-DIY multi-function pentesting device (ESP32 + CC1101 + OLED) built on the ESP-HACK firmware. Hardware build guide, wiring diagrams and documentation.
+
+<p align="center">
+  <a href="README.md">English</a> · <a href="README.es.md">Español</a>
+</p>
+
+🚧 **Work in progress** — hardware and documentation are still being built.
+
+A DIY multi-function pentesting device built on the [ESP-HACK](https://github.com/Teapot174/ESP-HACK) firmware.
