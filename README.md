@@ -44,6 +44,74 @@ A DIY multi-function pentesting device built on the [ESP-HACK](https://github.co
 
 > Some quantities (breadboards, buttons, OLED displays, cable packs) exceed what a single unit needs — this reflects buying in bulk to have spares for future builds.
 
+## Wiring Guide
+
+🚧 *Coming soon — this section will be filled in once the physical assembly is finalized. See [Project Status](#project-status) for the current blocker.*
+
+## Firmware Installation
+
+ESP-HACK is built with [PlatformIO](https://platformio.org/), targeting the Arduino framework for the `esp32dev` board. The upstream `platformio.ini` configuration is:
+
+```ini
+[env:esp32dev]
+platform = espressif32
+board = esp32dev
+framework = arduino
+monitor_speed = 115200
+board_build.partitions = huge_app.csv
+lib_deps =
+    adafruit/Adafruit SH110X@^2.1.13
+    adafruit/Adafruit SSD1306@^2.5.16
+    gyverlibs/GyverButton@^3.8
+    crankyoldgit/IRremoteESP8266@^2.9.0
+    lsatan/SmartRC-CC1101-Driver-Lib@^2.5.7
+    sui77/rc-switch@^2.6.4
+    h2zero/NimBLE-Arduino@^2.3.2
+    nrf24/RF24@^1.5.0
+    paulstoffregen/OneWire@^2.3.8
+
+extra_scripts =
+    post:build.py
+```
+
+### Prerequisites
+
+- [Visual Studio Code](https://code.visualstudio.com/) with the [PlatformIO IDE extension](https://platformio.org/platformio-ide), **or** the [PlatformIO Core CLI](https://docs.platformio.org/en/latest/core/installation/index.html)
+- A USB data cable connecting the ESP32-WROOM-32 board to your computer
+- The correct USB-to-UART driver for your board (typically CP2102 or CH340) installed on your host OS
+
+### Steps
+
+1. **Clone the upstream firmware.** The original repository is archived (read-only), so fork it on GitHub first if you plan to make changes, then clone your fork (or the original, for a straight build):
+```bash
+   git clone https://github.com/Teapot174/ESP-HACK.git
+   cd ESP-HACK
+```
+2. **Open the project in PlatformIO.** In VS Code: `File → Open Folder` → select the cloned `ESP-HACK` folder. PlatformIO detects `platformio.ini` automatically and resolves the `lib_deps` dependencies on first build.
+3. **Connect the ESP32 board** via USB and confirm it is detected:
+```bash
+   pio device list
+```
+4. **Build the firmware:**
+```bash
+   pio run
+```
+5. **Flash it.** The project ships with a bundled `esptool.exe` and a `huge_app.csv` partition table (needed because ESP-HACK's combined feature set exceeds the default app partition size). Using PlatformIO's upload target applies the correct partition scheme automatically:
+```bash
+   pio run --target upload
+```
+6. **Monitor the serial output** to confirm a successful boot:
+```bash
+   pio device monitor -b 115200
+```
+7. **(Optional) SD card content.** ESP-HACK can load additional content/updates from a FAT32-formatted microSD card — see the [ESP-HACK wiki](https://teapot174.github.io) for the expected folder structure.
+
+> ⚠️ Flash this on a bare ESP32 first, before final assembly — it lets you confirm the board boots correctly without mixing firmware issues with wiring issues.
+
+For troubleshooting and feature usage beyond this build guide, see the original documentation:
+- Repository: https://github.com/Teapot174/ESP-HACK
+- Wiki: https://teapot174.github.io
+
 ## Legal Disclaimer
 
 This project is a hardware build guide for a device running the third-party, open-source **ESP-HACK** firmware. It is published strictly for educational and authorized security-research purposes.
