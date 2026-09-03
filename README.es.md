@@ -19,11 +19,13 @@ Un dispositivo DIY multifunción de pentesting basado en el firmware [ESP-HACK](
 
 - [x] Componentes seleccionados y pedidos (BOM)
 - [x] Diseño de cableado / pinout documentado
-- [ ] Montaje físico en breadboard — en curso, actualmente bloqueado: esperando una segunda breadboard de 830 puntos (la primera se quedó sin pines libres para todo el cableado)
-- [ ] Flasheo del firmware (ESP-HACK)
-- [ ] Verificación del cableado por módulo (display, CC1101, IR, SD)
+- [x] Montaje físico en breadboard — completado (dos breadboards de 830 puntos con raíles interiores plegados)
+- [x] Flasheo del firmware (ESP-HACK) — exitoso, entorno SH1106, jammers deshabilitados en subghz.cpp
+- [ ] Verificación del cableado por módulo — OLED confirmado funcionando (conexión H-H directa a pines G21/G22 del ESP32)
+- [ ] Configuración tarjeta SD — pendiente (lector USB microSD en camino)
+- [ ] Cableado restante (CC1101, botones, IR-TX, IR-RX)
 - [ ] Carcasa / integración final
-- [ ] Documentación completa (BOM, guía de cableado, instalación, disclaimer legal)
+- [ ] Documentación completa (guía de cableado, fotos, disclaimer)
 
 ## Lista de materiales
 
