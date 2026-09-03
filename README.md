@@ -17,13 +17,13 @@ A DIY multi-function pentesting device built on the [ESP-HACK](https://github.co
 
 ## Project Status
 
-- [x] Components selected and ordered (BOM)
-- [x] Wiring / pinout design documented
-- [ ] Physical breadboard assembly — in progress, currently blocked: waiting on a second 830-point breadboard (the first one ran out of free pins for the full wiring)
-- [ ] Firmware flashing (ESP-HACK)
-- [ ] Per-module wiring verification (display, CC1101, IR, SD)
+- [x] Physical breadboard assembly — completed (dual 830-point boards with folded inner rails)
+- [x] Firmware flashing (ESP-HACK) — successful, SH1106 environment
+- [ ] Per-module wiring verification — OLED confirmed working (H-H direct connection to ESP32 G21/G22)
+- [ ] SD card setup — pending (USB microSD reader ordered)
+- [ ] Remaining module wiring (CC1101, buttons, IR-TX, IR-RX)
 - [ ] Enclosure / final integration
-- [ ] Full documentation (BOM, wiring guide, install steps, legal disclaimer)
+- [ ] Full documentation (wiring guide, photos)
 
 ## Bill of Materials
 
