@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/branding/logo-banner.png" width="480" alt="ESPectro logo">
+  <img src="docs/branding/logo-banner.jpg" width="480" alt="ESPectro logo">
 </p>
 
 <p align="center">
