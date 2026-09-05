@@ -129,9 +129,6 @@ Las placas se pidieron a través de **JLCPCB**, con una llegada estimada de **7 
 
 > **Nota sobre la reutilización:** los archivos Gerber no son un diseño propio de este repositorio — pertenecen al proyecto original ESP-HACK. Si los incorporas a tu propio repo en lugar de solo enlazar a la fuente, mantén la atribución original y revisa la licencia del repositorio original antes de redistribuirlos.
 
-El mapeo de pines y la constante de versión del firmware viven ambos en `src/CONFIG.h` — consulta la [Guía de cableado](#guía-de-cableado) para el mapa GPIO completo usado en este montaje.
-
-
 ## Créditos
 
 - **Firmware:** [ESP-HACK](https://github.com/Teapot174/ESP-HACK) de Teapot174, licenciado bajo AGPL-3.0
