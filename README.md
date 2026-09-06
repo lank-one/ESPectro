@@ -58,7 +58,7 @@ A DIY multi-function pentesting device built on the [ESP-HACK](https://github.co
 | 1 | DuPont wires Male-Male, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1361-cables-dupont-macho-macho-20-cm-40-unidades.html) | €1.60 |
 | 1 | DuPont wires Male-Female, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1362-cables-dupont-macho-hembra-20-cm-40-unidades.html) | €1.60 |
 | 1 | DuPont wires Female-Female, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1363-cables-dupont-hembra-hembra-20-cm-40-unidades.html) | €1.60 |
-| 4 | Custom PCB (JLCPCB, official ESP-HACK reference design) | — | €4.31/unit (≈€17.22 total for the batch of 4) |
+| 4 | Custom PCB (official ESP-HACK reference design) | [JLCPCB](https://jlcpcb.com/) | €4.31/unit (≈€17.22 total for the batch of 4) |
 
 **Total prototype spend: ≈ €79.54**
 
