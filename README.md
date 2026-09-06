@@ -58,10 +58,11 @@ A DIY multi-function pentesting device built on the [ESP-HACK](https://github.co
 | 1 | DuPont wires Male-Male, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1361-cables-dupont-macho-macho-20-cm-40-unidades.html) | €1.60 |
 | 1 | DuPont wires Male-Female, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1362-cables-dupont-macho-hembra-20-cm-40-unidades.html) | €1.60 |
 | 1 | DuPont wires Female-Female, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1363-cables-dupont-hembra-hembra-20-cm-40-unidades.html) | €1.60 |
+| 4 | Custom PCB (JLCPCB, official ESP-HACK reference design) | — | €4.31/unit (≈€17.22 total for the batch of 4) |
 
-**Total (breadboard-era components): ≈ €62.32**
+**Total prototype spend: ≈ €79.54**
 
-> Some quantities (breadboards, buttons, OLED displays, cable packs) exceed what a single unit needs — this reflects buying in bulk to have spares for future builds. The custom PCB order (JLCPCB) is tracked separately in [Known Issues & Design Decisions](#known-issues--design-decisions) — add it here with its price/link once the invoice is final, if you want a single running total.
+> **This table reflects total prototype spend**, including spares and prototyping tools (breadboards, jumper wire packs) that a single production unit does not need. It is not the per-unit cost.
 
 ## Wiring Guide
 
