@@ -62,7 +62,7 @@ Un dispositivo DIY multifunción de pentesting basado en el firmware [ESP-HACK](
 
 **Total gastado en el prototipo: ≈ 79,54€**
 
-> **Esta tabla refleja el gasto total del prototipo**, incluyendo repuestos y herramientas de prototipado (breadboards, packs de cables) que un dispositivo de producción no necesita. No es el coste por unidad — consulta el Notion del proyecto para el desglose de coste por dispositivo.
+> **Esta tabla refleja el gasto total del prototipo**, incluyendo repuestos y herramientas de prototipado (breadboards, packs de cables) que un dispositivo de producción no necesita. No es el coste por unidad.
 
 ## Guía de cableado
 
