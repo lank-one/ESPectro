@@ -58,10 +58,11 @@ Un dispositivo DIY multifunción de pentesting basado en el firmware [ESP-HACK](
 | 1 | Cables DuPont Macho-Macho, 20cm (pack de 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1361-cables-dupont-macho-macho-20-cm-40-unidades.html) | 1,60€ |
 | 1 | Cables DuPont Macho-Hembra, 20cm (pack de 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1362-cables-dupont-macho-hembra-20-cm-40-unidades.html) | 1,60€ |
 | 1 | Cables DuPont Hembra-Hembra, 20cm (pack de 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1363-cables-dupont-hembra-hembra-20-cm-40-unidades.html) | 1,60€ |
+| 4 | PCB personalizada (diseño de referencia oficial de ESP-HACK) | [JLCPCB](https://jlcpcb.com/) | 4,31€/ud (≈17,22€ total del lote de 4) |
 
-**Total (componentes de la etapa breadboard): ≈ 62,32€**
+**Total gastado en el prototipo: ≈ 79,54€**
 
-> Algunas cantidades (breadboards, botones, displays OLED, packs de cables) superan lo que necesita una sola unidad — es intencional, para tener repuestos de cara a montar otro dispositivo. El pedido de la PCB personalizada (JLCPCB) se menciona aparte en [Problemas conocidos y decisiones de diseño](#problemas-conocidos-y-decisiones-de-diseño) — añádelo aquí con su precio/enlace cuando tengas la factura final, si quieres un total único.
+> **Esta tabla refleja el gasto total del prototipo**, incluyendo repuestos y herramientas de prototipado (breadboards, packs de cables) que un dispositivo de producción no necesita. No es el coste por unidad — consulta el Notion del proyecto para el desglose de coste por dispositivo.
 
 ## Guía de cableado
 
