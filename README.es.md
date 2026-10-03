@@ -34,9 +34,9 @@ Un dispositivo DIY multifunción de pentesting basado en el firmware [ESP-HACK](
 - [x] Componentes seleccionados y pedidos (BOM)
 - [x] Firmware compilado y flasheado — ESP-HACK v1.2, entorno de display `SH1106`, funcionalidad de jammer deshabilitada (ver [Instalación del firmware](#instalación-del-firmware))
 - [x] Display OLED cableado y verificado (SDA→G21, SCL→G22)
-- [x] PCB personalizada pedida — diseño de referencia oficial de ESP-HACK (Gerbers de Teapot174 / Dripside, publicados en la carpeta `/others` del repositorio original), fabricada por JLCPCB — llegada estimada de 7 a 10 días hábiles
+- [x] PCB personalizada recibida — diseño de referencia oficial de ESP-HACK (Gerbers de Teapot174 / Dripside, publicados en la carpeta `/others` del repositorio original), fabricada por JLCPCB.
 - [x] Prototipado en breadboard descartado definitivamente — problemas persistentes de contacto en los pines del header del ESP32 (ver [Problemas conocidos y decisiones de diseño](#problemas-conocidos-y-decisiones-de-diseño))
-- [ ] Montaje final en la PCB (bloqueado hasta que llegue)
+- [ ] Montaje final en la PCB — sin empezar todavía, se iniciará la soldadura en cuanto haya tiempo disponible
 - [ ] Verificación funcional del módulo microSD
 - [ ] Cableado y pruebas del módulo CC1101
 - [ ] Cableado y pruebas de los botones
