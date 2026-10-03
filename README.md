@@ -34,9 +34,9 @@ A DIY multi-function pentesting device built on the [ESP-HACK](https://github.co
 - [x] Components selected and ordered (BOM)
 - [x] Firmware built and flashed — ESP-HACK v1.2, `SH1106` display environment, jammer functionality disabled (see [Firmware Installation](#firmware-installation))
 - [x] OLED display wired and verified (SDA→G21, SCL→G22)
-- [x] Custom PCB ordered — official ESP-HACK reference design (Gerbers by Teapot174 / Dripside, from the upstream repository's `/others` folder), manufactured via JLCPCB — ETA 7–10 business days
+- [x] Custom PCB received — official ESP-HACK reference design (Gerbers by Teapot174 / Dripside, from the upstream repository's `/others` folder), manufactured via JLCPCB
 - [x] Breadboard prototyping discontinued — persistent contact reliability issues with the ESP32 header pins (see [Known Issues & Design Decisions](#known-issues--design-decisions))
-- [ ] Final assembly on PCB (blocked on PCB delivery)
+- [ ] Final assembly on PCB — not started yet, soldering to begin as time allows
 - [ ] microSD module — functional verification
 - [ ] CC1101 module — wiring and testing
 - [ ] Buttons — wiring and testing
