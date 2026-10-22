@@ -46,6 +46,8 @@ A DIY multi-function pentesting device built on the [ESP-HACK](https://github.co
 
 ## Bill of Materials
 
+### Prototype spend (everything bought while prototyping)
+
 | Qty | Component | Purchase Link | Price |
 |-----|-----------|----------------|-------|
 | 2 | 830-point breadboard | [Amazon.es](https://www.amazon.es/dp/B0BDYWKC9H) | €5.40 |
@@ -58,11 +60,30 @@ A DIY multi-function pentesting device built on the [ESP-HACK](https://github.co
 | 1 | DuPont wires Male-Male, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1361-cables-dupont-macho-macho-20-cm-40-unidades.html) | €1.60 |
 | 1 | DuPont wires Male-Female, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1362-cables-dupont-macho-hembra-20-cm-40-unidades.html) | €1.60 |
 | 1 | DuPont wires Female-Female, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1363-cables-dupont-hembra-hembra-20-cm-40-unidades.html) | €1.60 |
-| 4 | Custom PCB (official ESP-HACK reference design) | [JLCPCB](https://jlcpcb.com/) | €4.31/unit (≈€17.22 total for the batch of 4) |
+| 1 | Tactile buttons 6×6mm, 2-pin SMD — pack of 20 | AliExpress | €2.19 |
+| 1 | 2.54mm pin headers (male+female) — pack of 40 | [Amazon.es](https://www.amazon.es/ANGEEK-Single-Breakable-Connector-Arduino/dp/B07XXXNH9V) | €9.56 |
+| 5 | Custom PCB (official ESP-HACK reference design) | [JLCPCB](https://jlcpcb.com/) | €4.31/unit (≈€21.55 for the batch of 5) |
 
-**Total prototype spend: ≈ €79.54**
+**Total prototype spend: ≈ €95.62** _(shipping not included)_
 
 > **This table reflects total prototype spend**, including spares and prototyping tools (breadboards, jumper wire packs) that a single production unit does not need. It is not the per-unit cost.
+
+### Device Bill of Materials (one production unit)
+
+What a single assembled ESPectro actually contains — no spares, no prototyping tools.
+
+| Qty | Component | Notes | Approx. unit price |
+|-----|-----------|-------|--------------------|
+| 1 | Custom PCB | official ESP-HACK reference design, JLCPCB | €4.31 |
+| 1 | ESP32 Dev Kit (WROOM-32) | AZDelivery, 38-pin | €15.04 |
+| 1 | CC1101 433MHz RF module | ICQUANZX | €8.99 |
+| 1 | 1.3" OLED display (SH1106, I²C) | one of a 2-pack | ≈€6.00 |
+| 1 | Tactile buttons 6×6mm, 2-pin SMD — pack of 20 | [AliExpress](https://es.aliexpress.com/item/4000678658427.html) | €2.19 |
+| 1 | MicroSD card reader module | — | €1.50 |
+| 1 | IR emitter/receiver (38KHz, 940nm) | — | €2.80 |
+| — | 2.54mm female header strips | cut to length per module — ~2 of a 40-strip pack (€9.56) | ≈€0.48 |
+
+**Approx. per-unit cost: ≈ €39.56** _(excludes shipping and soldering tools; OLED counted as half of a 2-pack)._
 
 ## Wiring Guide
 
