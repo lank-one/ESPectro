@@ -46,23 +46,44 @@ Un dispositivo DIY multifunción de pentesting basado en el firmware [ESP-HACK](
 
 ## Lista de materiales
 
-| Unidades | Componente | Enlace de compra | Precio |
-|----------|-----------|-------------------|--------|
-| 2 | Protoboard 830 puntos | [Amazon.es](https://www.amazon.es/dp/B0BDYWKC9H) | 5,40€ |
-| 1 | AZDelivery ESP32 Dev Kit (WROOM-32) | [Amazon.es](https://www.amazon.es/dp/B0DHY22H5B) | 15,04€ |
-| 1 | ICQUANZX CC1101 433MHz | [Amazon.es](https://www.amazon.es/dp/B07YX92NMP) | 8,99€ |
-| 1 | Display OLED 1.3" I2C (SH1106) — pack de 2 | [Amazon.es](https://www.amazon.es/dp/B0DFCKSWH9) | 11,99€ |
-| 1 | Botones de colores — pack de 15 | [Bricogeek](https://tienda.bricogeek.com/home/508-pack-pulsadores-de-colores-15-unidades.html) | 6,40€ |
-| 1 | Módulo lector microSD | [Bricogeek](https://tienda.bricogeek.com/interfaz-de-almacenamiento/2042-m%C3%B3dulo-lector-memoria-micro-sd-para-arduino.html) | 1,50€ |
-| 1 | Kit emisor/receptor IR 38KHz (940nm) | [Bricogeek](https://tienda.bricogeek.com/sensores-luz-infrarrojos/2122-kit-emisor-y-receptor-ir-38khz-940nm.html) | 2,80€ |
-| 1 | Cables DuPont Macho-Macho, 20cm (pack de 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1361-cables-dupont-macho-macho-20-cm-40-unidades.html) | 1,60€ |
-| 1 | Cables DuPont Macho-Hembra, 20cm (pack de 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1362-cables-dupont-macho-hembra-20-cm-40-unidades.html) | 1,60€ |
-| 1 | Cables DuPont Hembra-Hembra, 20cm (pack de 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1363-cables-dupont-hembra-hembra-20-cm-40-unidades.html) | 1,60€ |
-| 4 | PCB personalizada (diseño de referencia oficial de ESP-HACK) | [JLCPCB](https://jlcpcb.com/) | 4,31€/ud (≈17,22€ total del lote de 4) |
+### Gasto de prototipo (todo lo comprado durante el prototipado)
 
-**Total gastado en el prototipo: ≈ 79,54€**
+| Uds | Componente | Enlace de compra | Precio |
+|-----|-----------|----------------|-------|
+| 2 | Protoboard 830 puntos | [Amazon.es](https://www.amazon.es/dp/B0BDYWKC9H) | 5,40 € |
+| 1 | AZDelivery ESP32 Dev Kit (WROOM-32) | [Amazon.es](https://www.amazon.es/dp/B0DHY22H5B) | 15,04 € |
+| 1 | Módulo RF ICQUANZX CC1101 433MHz | [Amazon.es](https://www.amazon.es/dp/B07YX92NMP) | 8,99 € |
+| 1 | Pantalla OLED 1.3" I2C (SH1106) — pack de 2 | [Amazon.es](https://www.amazon.es/dp/B0DFCKSWH9) | 11,99 € |
+| 1 | Botones de colores — pack de 15 | [Bricogeek](https://tienda.bricogeek.com/home/508-pack-pulsadores-de-colores-15-unidades.html) | 6,40 € |
+| 1 | Módulo lector de tarjetas MicroSD | [Bricogeek](https://tienda.bricogeek.com/interfaz-de-almacenamiento/2042-m%C3%B3dulo-lector-memoria-micro-sd-para-arduino.html) | 1,50 € |
+| 1 | Kit emisor/receptor IR, 38KHz (940nm) | [Bricogeek](https://tienda.bricogeek.com/sensores-luz-infrarrojos/2122-kit-emisor-y-receptor-ir-38khz-940nm.html) | 2,80 € |
+| 1 | Cables DuPont Macho-Macho, 20cm (pack de 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1361-cables-dupont-macho-macho-20-cm-40-unidades.html) | 1,60 € |
+| 1 | Cables DuPont Macho-Hembra, 20cm (pack de 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1362-cables-dupont-macho-hembra-20-cm-40-unidades.html) | 1,60 € |
+| 1 | Cables DuPont Hembra-Hembra, 20cm (pack de 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1363-cables-dupont-hembra-hembra-20-cm-40-unidades.html) | 1,60 € |
+| 1 | Botones táctiles 6×6mm, 2 pines SMD — pack de 20 | [AliExpress](https://es.aliexpress.com/item/4000678658427.html) | 2,19 € |
+| 1 | Tiras de pines 2,54mm (macho+hembra) — pack de 40 | [Amazon.es](https://www.amazon.es/ANGEEK-Single-Breakable-Connector-Arduino/dp/B07XXXNH9V) | 9,56 € |
+| 5 | PCB a medida (diseño de referencia oficial de ESP-HACK) | [JLCPCB](https://jlcpcb.com/) | 4,31 €/ud (≈21,55 € el lote de 5) |
 
-> **Esta tabla refleja el gasto total del prototipo**, incluyendo repuestos y herramientas de prototipado (breadboards, packs de cables) que un dispositivo de producción no necesita. No es el coste por unidad.
+**Gasto total de prototipo: ≈ 95,62 €** _(envío no incluido)_
+
+> **Esta tabla refleja el gasto total de prototipo**, incluyendo repuestos y herramientas de prototipado (protoboards, packs de cables) que una unidad de producción no necesita. No es el coste por unidad.
+
+### Lista de materiales del dispositivo (una unidad)
+
+Lo que realmente lleva un ESPectro montado — sin repuestos ni herramientas de prototipado.
+
+| Uds | Componente | Notas | Precio aprox. unidad |
+|-----|-----------|-------|--------------------|
+| 1 | PCB a medida | diseño de referencia oficial de ESP-HACK, JLCPCB | 4,31 € |
+| 1 | ESP32 Dev Kit (WROOM-32) | AZDelivery, 38 pines | 15,04 € |
+| 1 | Módulo RF CC1101 433MHz | ICQUANZX | 8,99 € |
+| 1 | Pantalla OLED 1.3" (SH1106, I²C) | una de un pack de 2 | ≈6,00 € |
+| 4 | Botones táctiles 6×6mm, 2 pines SMD | pulsador por arriba — 4 de un pack de 20 (2,19 €) | ≈0,44 € |
+| 1 | Módulo lector de tarjetas MicroSD | — | 1,50 € |
+| 1 | Emisor/receptor IR (38KHz, 940nm) | — | 2,80 € |
+| — | Tiras de pines hembra 2,54mm | cortadas a medida por módulo — ~2 de un pack de 40 (9,56 €) | ≈0,48 € |
+
+**Coste aprox. por unidad: ≈ 39,56 €** _(sin envío ni herramientas de soldadura; el OLED cuenta como la mitad de un pack de 2)._
 
 ## Guía de cableado
 
