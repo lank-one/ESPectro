@@ -32,15 +32,16 @@ Un dispositivo DIY multifunción de pentesting basado en el firmware [ESP-HACK](
 ## Estado del proyecto
 
 - [x] Componentes seleccionados y pedidos (BOM)
-- [x] Firmware compilado y flasheado — ESP-HACK v1.2, entorno de display `SH1106`, funcionalidad de jammer deshabilitada (ver [Instalación del firmware](#instalación-del-firmware))
-- [x] Display OLED cableado y verificado (SDA→G21, SCL→G22)
-- [x] PCB personalizada recibida — diseño de referencia oficial de ESP-HACK (Gerbers de Teapot174 / Dripside, publicados en la carpeta `/others` del repositorio original), fabricada por JLCPCB.
+- [x] Firmware compilado y flasheado — ESP-HACK **v1.3**, entorno de display `SH1106`, funcionalidad de jammer deshabilitada (ver [Instalación del firmware](#instalación-del-firmware))
+- [x] PCB personalizada recibida — diseño de referencia oficial de ESP-HACK (Gerbers de Teapot174 / Dripside, publicados en la carpeta `/others` del repositorio original), fabricada por JLCPCB
 - [x] Prototipado en breadboard descartado definitivamente — problemas persistentes de contacto en los pines del header del ESP32 (ver [Problemas conocidos y decisiones de diseño](#problemas-conocidos-y-decisiones-de-diseño))
-- [ ] Montaje final en la PCB — sin empezar todavía, se iniciará la soldadura en cuanto haya tiempo disponible
-- [ ] Verificación funcional del módulo microSD
-- [ ] Cableado y pruebas del módulo CC1101
-- [ ] Cableado y pruebas de los botones
-- [ ] Cableado y pruebas del emisor/receptor IR
+- [x] Botones táctiles SMD soldados y verificados (UP / DOWN / OK / BACK)
+- [x] Display OLED soldado y verificado (SDA→G21, SCL→G22) — el boot logo y el menú se renderizan correctamente
+- [x] Todos los módulos montados sobre tiras de pines hembra 2,54 mm (CC1101, microSD, OLED, IR) y ESP32 insertado
+- [x] El dispositivo arranca en la PCB montada — menú del firmware, navegación con botones y pantalla funcionando
+- [ ] Módulo microSD — verificación funcional (módulo correcto de 3.3 V ya montado; prueba de lectura/escritura pendiente)
+- [ ] Módulo CC1101 — prueba funcional (Sub-GHz) pendiente
+- [ ] Emisor/receptor IR — prueba funcional pendiente
 - [ ] Carcasa impresa en 3D
 - [ ] Documentación completa del montaje con fotos
 
