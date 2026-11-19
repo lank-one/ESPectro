@@ -153,7 +153,9 @@ Boards were ordered through **JLCPCB**, with an estimated delivery of **7–10 b
 
 ## Firmware Installation
 
-ESP-HACK is built with [PlatformIO](https://platformio.org/), targeting the Arduino framework for the `esp32dev` board, with two selectable build environments depending on your OLED controller:
+> This build targets **ESP-HACK `FW_v1.3`** — the latest and final upstream release (the author archived the repository, read-only, in August 2026).
+
+ESP-HACK is built with:
 
 ```ini
 [platformio]
