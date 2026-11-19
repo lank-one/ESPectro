@@ -32,15 +32,16 @@ A DIY multi-function pentesting device built on the [ESP-HACK](https://github.co
 ## Project Status
 
 - [x] Components selected and ordered (BOM)
-- [x] Firmware built and flashed — ESP-HACK v1.2, `SH1106` display environment, jammer functionality disabled (see [Firmware Installation](#firmware-installation))
-- [x] OLED display wired and verified (SDA→G21, SCL→G22)
+- [x] Firmware built and flashed — ESP-HACK **v1.3**, `SH1106` display environment, jammer functionality disabled (see [Firmware Installation](#firmware-installation))
 - [x] Custom PCB received — official ESP-HACK reference design (Gerbers by Teapot174 / Dripside, from the upstream repository's `/others` folder), manufactured via JLCPCB
 - [x] Breadboard prototyping discontinued — persistent contact reliability issues with the ESP32 header pins (see [Known Issues & Design Decisions](#known-issues--design-decisions))
-- [ ] Final assembly on PCB — not started yet, soldering to begin as time allows
-- [ ] microSD module — functional verification
-- [ ] CC1101 module — wiring and testing
-- [ ] Buttons — wiring and testing
-- [ ] IR emitter/receiver — wiring and testing
+- [x] SMD tactile buttons soldered and verified (UP / DOWN / OK / BACK)
+- [x] OLED display soldered and verified (SDA→G21, SCL→G22) — boot logo and menu render correctly
+- [x] All modules mounted on 2.54 mm female headers (CC1101, microSD, OLED, IR) and ESP32 seated
+- [x] Device boots on the assembled PCB — firmware menu, button navigation and display confirmed working
+- [ ] microSD module — functional verification (correct 3.3 V module fitted; read/write test pending)
+- [ ] CC1101 module — functional test (Sub-GHz) pending
+- [ ] IR emitter/receiver — functional test pending
 - [ ] 3D-printed enclosure
 - [ ] Full build documentation with photos
 
