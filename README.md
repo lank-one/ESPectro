@@ -12,6 +12,7 @@
   <img src="https://img.shields.io/badge/status-WIP-orange" alt="Status: Work in Progress">
   <img src="https://img.shields.io/badge/platform-ESP32-blue" alt="Platform: ESP32">
   <img src="https://img.shields.io/badge/firmware-ESP--HACK-critical" alt="Firmware: ESP-HACK">
+  <img src="https://img.shields.io/badge/version-v1.3-blue" alt="Firmware version: v1.3">
   <img src="https://img.shields.io/github/license/lank-one/ESPectro" alt="License">
 </p>
 
