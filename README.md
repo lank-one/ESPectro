@@ -70,7 +70,7 @@ _(Approximate prices, VAT included; shipping and soldering tools not included.)_
 
 The pinout below is sourced directly from ESP-HACK's firmware configuration (`src/CONFIG.h`) — the same GPIO map used by the official reference PCB this build is based on, so it applies whether you build on the PCB, on perfboard, or on a breadboard for testing.
 
-### OLED Display (SH1106, I²C) — ✅ Wired & verified
+### OLED Display (SH1106, I²C) — ✅ Soldered & verified
 
 | Display Pin | ESP32 GPIO |
 |---|---|
@@ -79,7 +79,7 @@ The pinout below is sourced directly from ESP-HACK's firmware configuration (`sr
 | SDA | G21 |
 | SCL | G22 |
 
-### Navigation Buttons — ✅ Wired & verified
+### Navigation Buttons — ✅ Soldered & verified
 
 Each button connects one leg to the listed GPIO, the other to GND (firmware uses internal pull-ups).
 
@@ -90,7 +90,7 @@ Each button connects one leg to the listed GPIO, the other to GND (firmware uses
 | OK | G33 |
 | BACK | G32 |
 
-### CC1101 433MHz Module (SPI) — ⏳ Pending assembly (PCB)
+### CC1101 433MHz Module (SPI) — 🔩 Soldered — functional test pending
 
 | CC1101 Pin | ESP32 GPIO |
 |---|---|
@@ -102,7 +102,7 @@ Each button connects one leg to the listed GPIO, the other to GND (firmware uses
 | CSN (CS) | G5 |
 | GDO0 | G4 |
 
-### microSD Module (dedicated SPI bus) — ⏳ Wired, functional verification pending
+### microSD Module (dedicated SPI bus) — 🔩 Soldered (correct 3.3 V module) — functional test pending
 
 | SD Module Pin | ESP32 GPIO |
 |---|---|
@@ -115,7 +115,7 @@ Each button connects one leg to the listed GPIO, the other to GND (firmware uses
 
 > The SD card runs on its own dedicated SPI instance in firmware (`sdSPI`), separate from the CC1101's hardware SPI bus above — the two do not share pins.
 
-### Infrared Emitter / Receiver — ⏳ Pending assembly (PCB)
+### Infrared Emitter / Receiver — 🔩 Soldered — functional test pending
 
 | Signal | ESP32 GPIO |
 |---|---|
