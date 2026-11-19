@@ -78,7 +78,7 @@ The pinout below is sourced directly from ESP-HACK's firmware configuration (`sr
 | SDA | G21 |
 | SCL | G22 |
 
-### Navigation Buttons — ⏳ Pending assembly (PCB)
+### Navigation Buttons — ✅ Wired & verified)
 
 Each button connects one leg to the listed GPIO, the other to GND (firmware uses internal pull-ups).
 
