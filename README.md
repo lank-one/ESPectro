@@ -208,7 +208,7 @@ This build uses the **`SH1106`** environment, matching the OLED module in the [B
 
 1. **Clone the upstream firmware.** The original repository is archived (read-only), so fork it on GitHub first if you plan to make changes, then clone your fork (or the original, for a straight build):
 ```bash
-   git clone https://github.com/Teapot174/ESP-HACK.git
+   git clone --branch v1.3 https://github.com/Teapot174/ESP-HACK.git
    cd ESP-HACK
 ```
 2. **Open the project in PlatformIO.** In VS Code: `File → Open Folder` → select the cloned `ESP-HACK` folder. PlatformIO detects `platformio.ini` automatically and resolves the `lib_deps` dependencies on first build.
