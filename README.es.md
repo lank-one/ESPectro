@@ -152,7 +152,9 @@ Las placas se pidieron a través de **JLCPCB**, con una llegada estimada de **7 
 
 ## Instalación del firmware
 
-ESP-HACK se compila con [PlatformIO](https://platformio.org/), usando el framework Arduino para la placa `esp32dev`, con dos entornos de compilación seleccionables según tu controlador de OLED:
+> Este montaje usa **ESP-HACK `FW_v1.3`** — la última y definitiva release del proyecto original (el autor archivó el repositorio, en solo lectura, en agosto de 2026).
+
+ESP-HACK se compila con:
 
 ```ini
 [platformio]
