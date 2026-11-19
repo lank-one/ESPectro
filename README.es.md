@@ -69,7 +69,7 @@ _(Precios aproximados, IVA incluido; envío y herramientas de soldadura no inclu
 
 El pinout siguiente procede directamente de la configuración del firmware ESP-HACK (`src/CONFIG.h`) — el mismo mapa de GPIO que usa la PCB de referencia oficial en la que se basa este montaje, así que aplica tanto si construyes sobre la PCB, sobre perfboard, o sobre breadboard para pruebas.
 
-### Display OLED (SH1106, I²C) — ✅ Cableado y verificado
+### Display OLED (SH1106, I²C) — ✅ Soldado y verificado
 
 | Pin del display | GPIO del ESP32 |
 |---|---|
@@ -78,7 +78,7 @@ El pinout siguiente procede directamente de la configuración del firmware ESP-H
 | SDA | G21 |
 | SCL | G22 |
 
-### Pulsadores de navegación — ✅ Cableado y verificado
+### Pulsadores de navegación — ✅ Soldado y verificado
 
 Cada pulsador conecta una pata al GPIO indicado y la otra a GND (el firmware usa pull-ups internas).
 
@@ -89,7 +89,7 @@ Cada pulsador conecta una pata al GPIO indicado y la otra a GND (el firmware usa
 | OK | G33 |
 | BACK | G32 |
 
-### Módulo CC1101 433MHz (SPI) — ⏳ Pendiente de montaje (PCB)
+### Módulo CC1101 433MHz (SPI) — 🔩 Soldado — prueba funcional pendiente
 
 | Pin del CC1101 | GPIO del ESP32 |
 |---|---|
@@ -101,7 +101,7 @@ Cada pulsador conecta una pata al GPIO indicado y la otra a GND (el firmware usa
 | CSN (CS) | G5 |
 | GDO0 | G4 |
 
-### Módulo microSD (bus SPI dedicado) — ⏳ Cableado, verificación funcional pendiente
+### Módulo microSD (bus SPI dedicado) — 🔩 Soldado (módulo correcto de 3.3 V) — prueba funcional pendiente
 
 | Pin del módulo SD | GPIO del ESP32 |
 |---|---|
@@ -114,7 +114,7 @@ Cada pulsador conecta una pata al GPIO indicado y la otra a GND (el firmware usa
 
 > La tarjeta SD funciona con su propia instancia SPI dedicada en firmware (`sdSPI`), independiente del bus SPI hardware del CC1101 de arriba — no comparten pines.
 
-### Emisor / receptor IR — ⏳ Pendiente de montaje (PCB)
+### Emisor / receptor IR — 🔩 Soldado — prueba funcional pendiente
 
 | Señal | GPIO del ESP32 |
 |---|---|
