@@ -46,44 +46,24 @@ A DIY multi-function pentesting device built on the [ESP-HACK](https://github.co
 
 ## Bill of Materials
 
-### Prototype spend (everything bought while prototyping)
+Components for **one** assembled **ESPectro**, with purchase links.
+_(Approximate prices, VAT included; shipping and soldering tools not included.)_
 
-| Qty | Component | Purchase Link | Price |
-|-----|-----------|----------------|-------|
-| 2 | 830-point breadboard | [Amazon.es](https://www.amazon.es/dp/B0BDYWKC9H) | €5.40 |
-| 1 | AZDelivery ESP32 Dev Kit (WROOM-32) | [Amazon.es](https://www.amazon.es/dp/B0DHY22H5B) | €15.04 |
-| 1 | ICQUANZX CC1101 433MHz RF module | [Amazon.es](https://www.amazon.es/dp/B07YX92NMP) | €8.99 |
-| 1 | 1.3" OLED display, I2C (SH1106) — pack of 2 | [Amazon.es](https://www.amazon.es/dp/B0DFCKSWH9) | €11.99 |
-| 1 | Colored push buttons — pack of 15 | [Bricogeek](https://tienda.bricogeek.com/home/508-pack-pulsadores-de-colores-15-unidades.html) | €6.40 |
-| 1 | MicroSD card reader module | [Bricogeek](https://tienda.bricogeek.com/interfaz-de-almacenamiento/2042-m%C3%B3dulo-lector-memoria-micro-sd-para-arduino.html) | €1.50 |
-| 1 | IR emitter/receiver kit, 38KHz (940nm) | [Bricogeek](https://tienda.bricogeek.com/sensores-luz-infrarrojos/2122-kit-emisor-y-receptor-ir-38khz-940nm.html) | €2.80 |
-| 1 | DuPont wires Male-Male, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1361-cables-dupont-macho-macho-20-cm-40-unidades.html) | €1.60 |
-| 1 | DuPont wires Male-Female, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1362-cables-dupont-macho-hembra-20-cm-40-unidades.html) | €1.60 |
-| 1 | DuPont wires Female-Female, 20cm (pack of 40) | [Bricogeek](https://tienda.bricogeek.com/cables/1363-cables-dupont-hembra-hembra-20-cm-40-unidades.html) | €1.60 |
-| 1 | Tactile buttons 6×6mm, 2-pin SMD — pack of 20 | AliExpress | €2.19 |
-| 1 | 2.54mm pin headers (male+female) — pack of 40 | [Amazon.es](https://www.amazon.es/ANGEEK-Single-Breakable-Connector-Arduino/dp/B07XXXNH9V) | €9.56 |
-| 5 | Custom PCB (official ESP-HACK reference design) | [JLCPCB](https://jlcpcb.com/) | €4.31/unit (≈€21.55 for the batch of 5) |
+| Qty | Component | Purchase | Approx. unit price |
+| --- | --- | --- | --- |
+| 1 | Custom PCB — official ESP-HACK reference design | [JLCPCB](https://jlcpcb.com/) | €4.31 |
+| 1 | ESP32 Dev Kit (WROOM-32, 38-pin) — AZDelivery | [Amazon.es](https://www.amazon.es/dp/B0DHY22H5B) | €15.04 |
+| 1 | CC1101 433 MHz RF module — ICQUANZX | [Amazon.es](https://www.amazon.es/dp/B07YX92NMP) | €8.99 |
+| 1 | 1.3" OLED display (SH1106, I²C) — ½ of a 2-pack | [Amazon.es](https://www.amazon.es/dp/B0DFCKSWH9) | ≈€6.00 |
+| 4 | Tactile buttons 6×6 mm, **2-pin SMD** — 4 of a 20-pack | [AliExpress](https://es.aliexpress.com/item/4000678658427.html) | ≈€0.44 |
+| 1 | MicroSD module **3.3V** (mini, pinout `3V3·CS·MOSI·CLK·MISO·GND`) — Create idea, 1 of a 10-pack | [Amazon.es](https://www.amazon.es/dp/B0DRXBF5RW) | ≈€1.40 |
+| 1 | IR emitter/receiver kit, 38 kHz (940 nm) | [Bricogeek](https://tienda.bricogeek.com/sensores-luz-infrarrojos/2122-kit-emisor-y-receptor-ir-38khz-940nm.html) | €2.80 |
+| ~2 strips | 2.54 mm **female** header strips — cut to length per module | [Amazon.es](https://www.amazon.es/ANGEEK-Single-Breakable-Connector-Arduino/dp/B07XXXNH9V) | ≈€0.48 |
 
-**Total prototype spend: ≈ €95.62** _(shipping not included)_
+**Approx. cost per unit: ≈ €39.46** _(excludes shipping and soldering tools)._
 
-> **This table reflects total prototype spend**, including spares and prototyping tools (breadboards, jumper wire packs) that a single production unit does not need. It is not the per-unit cost.
+> ⚠️ **MicroSD module note:** this board needs the **3.3 V mini** module with pin order `3V3 · CS · MOSI · CLK · MISO · GND` (VCC and GND at opposite ends). The common large "Micro SD Card Adapter" (order `CS·SCK·MOSI·MISO·VCC·GND`, with a 5 V level-shifter) does **not** fit this footprint.
 
-### Device Bill of Materials (one production unit)
-
-What a single assembled ESPectro actually contains — no spares, no prototyping tools.
-
-| Qty | Component | Notes | Approx. unit price |
-|-----|-----------|-------|--------------------|
-| 1 | Custom PCB | official ESP-HACK reference design, JLCPCB | €4.31 |
-| 1 | ESP32 Dev Kit (WROOM-32) | AZDelivery, 38-pin | €15.04 |
-| 1 | CC1101 433MHz RF module | ICQUANZX | €8.99 |
-| 1 | 1.3" OLED display (SH1106, I²C) | one of a 2-pack | ≈€6.00 |
-| 1 | Tactile buttons 6×6mm, 2-pin SMD — pack of 20 | [AliExpress](https://es.aliexpress.com/item/4000678658427.html) | €2.19 |
-| 1 | MicroSD card reader module | — | €1.50 |
-| 1 | IR emitter/receiver (38KHz, 940nm) | — | €2.80 |
-| — | 2.54mm female header strips | cut to length per module — ~2 of a 40-strip pack (€9.56) | ≈€0.48 |
-
-**Approx. per-unit cost: ≈ €39.56** _(excludes shipping and soldering tools; OLED counted as half of a 2-pack)._
 
 ## Wiring Guide
 
