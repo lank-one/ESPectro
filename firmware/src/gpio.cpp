@@ -1,0 +1,1540 @@
+#include "menu/gpio.h"
+#include "menu/subghz.h"
+#include "Explorer.h"
+#include "interface/interface.h"
+#include "CONFIG.h"
+#include "misc.h"
+#include "display.h"
+#include <GyverButton.h>
+#include <SPI.h>
+#include <RF24.h>
+#include <SD.h>
+#include <EEPROM.h>
+#include <OneWire.h>
+#include <OneWireHub.h>
+#include <DS2401.h>
+
+extern DisplayType display;
+extern GButton buttonUp, buttonDown, buttonOK, buttonBack;
+extern bool inMenu;
+extern byte currentMenu, gpioMenuIndex;
+extern SPIClass sdSPI;
+extern void OLED_printMenu(DisplayType &display, byte menuIndex);
+
+// NRF24
+RF24 radio(CC1101_CS, CC1101_GDO0);
+SPIClass *NRFSPI = &SPI;
+bool inNRF24Submenu = false, inJammingMenu = false, inJammingActive = false, inNRF24Config = false;
+bool inNRF24InitError = false;
+byte nrf24MenuIndex = 0, nrf24ConfigIndex = 0, jammingModeIndex = 0, nrf24InitErrorReturnIndex = 0;
+const char* nrf24MenuItems[] = {"Jammer", "Spectrum", "Config"};
+const char* jammingModes[] = {"WiFi", "BLE", "BLE ADV", "Bluetooth", "USB", "Video", "RadioCH", "Zigbee", "Drone", "FULL"};
+const byte NRF24_MENU_ITEM_COUNT = 3, JAMMING_MODE_COUNT = 10;
+
+// Spectrum Analyzer
+#define SPECTRUM_CHANNELS 128
+uint8_t spectrumValues[SPECTRUM_CHANNELS];
+bool inSpectrumAnalyzer = false;
+unsigned long lastSpectrumUpdate = 0;
+const unsigned long SPECTRUM_UPDATE_INTERVAL = 25; // 1000/25 ГЦ
+
+// NRF24 pins
+struct NRF24Config {
+  byte cePin = GPIO_A, csnPin = GPIO_B, sckPin = GPIO_C, mosiPin = GPIO_D, misoPin = GPIO_E;
+} nrf24Config;
+
+struct StoredNRF24Config {
+  uint32_t signature;
+  byte cePin;
+  byte csnPin;
+  byte mosiPin;
+  byte misoPin;
+  byte sckPin;
+};
+
+struct StoredIButtonConfig {
+  uint32_t signature;
+  byte pinIndex;
+};
+
+static const uint32_t NRF24_CONFIG_SIGNATURE = 0x4E524632UL;
+static const uint32_t IBUTTON_CONFIG_SIGNATURE = 0x4942544EUL;
+static const int IBUTTON_CONFIG_EEPROM_ADDRESS = sizeof(StoredNRF24Config);
+static const int GPIO_EEPROM_SIZE = ESPHACK_EEPROM_SIZE;
+static bool gpioStorageReady = false;
+
+// Pins
+const byte availablePins[] = {GPIO_A, GPIO_B, GPIO_C, GPIO_D, GPIO_E, GPIO_F};
+const char* pinNames[] = {"A", "B", "C", "D", "E", "F"};
+const byte AVAILABLE_PINS_COUNT = 6;
+static const char* CC1101_PIN_NAME = "CC1101";
+
+// iButton pins
+const byte iButtonPins[] = {GPIO_A, GPIO_B, GPIO_C, GPIO_D, GPIO_E, GPIO_F};
+const char* iButtonPinNames[] = {"A", "B", "C", "D", "E", "F"};
+const byte IBUTTON_PINS_COUNT = 6;
+
+// iButton
+static const byte IBUTTON_MENU_ITEM_COUNT = 3;
+static const char* iButtonMenuItems[] = {"Read", "Write", "Emulate"};
+static const char* IBUTTON_DIR = "/ibutton";
+static const int IBUTTON_MAX_FILES = 50;
+
+enum IButtonState {
+  IBUTTON_MENU,
+  IBUTTON_READ_WAIT,
+  IBUTTON_READ_DETECTED,
+  IBUTTON_WRITE_BROWSE,
+  IBUTTON_WRITE_WAIT,
+  IBUTTON_EMULATE_BROWSE,
+  IBUTTON_EMULATE_ACTIVE
+};
+
+bool inIButtonSubmenu = false;
+IButtonState iButtonState = IBUTTON_MENU;
+byte iButtonMenuIndex = 0;
+byte iButtonPinIndex = 5; // default F
+byte iButtonPin = GPIO_F;
+OneWire* iButtonWire = nullptr;
+OneWireHub* iButtonHub = nullptr;
+DS2401* iButtonEmulatedKey = nullptr;
+byte iButtonBuffer[8] = {0};
+byte iButtonType = 0x00;
+uint8_t iButtonBits = 64;
+bool iButtonWasPresent = false;
+bool iButtonCrcOk = false;
+bool iButtonEmulationActive = false;
+bool inGPIOPlaceholder = false;
+
+static const byte ST25R3916_MENU_ITEM_COUNT = 4;
+static const char* st25r3916MenuItems[] = {"Read", "Write", "Emulate", "Config"};
+bool inST25R3916Submenu = false;
+bool inST25R3916Placeholder = false;
+byte st25r3916MenuIndex = 0;
+
+static const char* iButtonExts[] = {".ibtn"};
+ExplorerEntry iButtonFileList[IBUTTON_MAX_FILES];
+ExplorerState iButtonExplorer;
+ExplorerConfig iButtonExplorerCfg = {IBUTTON_DIR, iButtonExts, 1, true, false, true, true};
+
+// Channels NRF24
+byte wifi_channels[] = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 26, 28, 30, 32, 34, 36, 38, 40, 42, 51, 53, 55, 57, 59, 61, 63, 65, 67, 69, 71, 73};
+byte ble_channels[] = {4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70, 72, 74, 76, 78};
+byte ble_adv_channels[] = {2, 26, 80};
+byte bluetooth_channels[] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80};
+byte usb_channels[] = {32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62, 64, 66, 68, 70};
+byte video_channels[] = {60, 62, 64, 66, 68, 70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90, 92, 94, 96, 98, 100, 102, 104, 106, 108, 110, 112, 114, 116, 118, 120, 122, 124};
+byte rc_channels[] = {1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39};
+byte zigbee_channels[] = {4, 5, 6, 9, 10, 11, 14, 15, 16, 19, 20, 21, 24, 25, 26, 29, 30, 31, 34, 35, 36, 39, 40, 41, 44, 45, 46, 49, 50, 51, 54, 55, 56, 59, 60, 61, 64, 65, 66, 69, 70, 71, 74, 75, 76, 79, 80, 81};
+byte drone_channels[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124};
+byte full_channels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124};
+
+bool ensureGPIOStorageReady() {
+  if (gpioStorageReady) return true;
+  if (EEPROM.length() >= GPIO_EEPROM_SIZE) {
+    gpioStorageReady = true;
+  } else {
+    gpioStorageReady = EEPROM.begin(GPIO_EEPROM_SIZE);
+  }
+  if (!gpioStorageReady) {
+    Serial.println(F("GPIO storage init failed"));
+  }
+  return gpioStorageReady;
+}
+
+bool isAvailablePin(byte pin) {
+  for (byte i = 0; i < AVAILABLE_PINS_COUNT; i++) {
+    if (availablePins[i] == pin) return true;
+  }
+  return false;
+}
+
+void loadNRF24Config();
+void loadIButtonConfig();
+void saveIButtonConfig();
+
+bool isNRF24UsingCC1101Pins() {
+  return nrf24Config.cePin == CC1101_GDO0 && nrf24Config.csnPin == CC1101_CS;
+}
+
+byte getSubGHzCC1101GDO0Pin() {
+  loadNRF24Config();
+  return isNRF24UsingCC1101Pins() ? GPIO_A : CC1101_GDO0;
+}
+
+byte getSubGHzCC1101CSPin() {
+  loadNRF24Config();
+  return isNRF24UsingCC1101Pins() ? GPIO_B : CC1101_CS;
+}
+
+void setDefaultNRF24BusPins() {
+  nrf24Config.cePin = GPIO_A;
+  nrf24Config.csnPin = GPIO_B;
+}
+
+void setDefaultNRF24Config() {
+  setDefaultNRF24BusPins();
+  nrf24Config.sckPin = GPIO_C;
+  nrf24Config.mosiPin = GPIO_D;
+  nrf24Config.misoPin = GPIO_E;
+}
+
+bool validateStoredNRF24Config(const StoredNRF24Config& stored) {
+  bool usesGPIOPins = isAvailablePin(stored.cePin) && isAvailablePin(stored.csnPin);
+  bool usesCC1101Pins = stored.cePin == CC1101_GDO0 && stored.csnPin == CC1101_CS;
+  return stored.signature == NRF24_CONFIG_SIGNATURE &&
+         (usesGPIOPins || usesCC1101Pins) &&
+         isAvailablePin(stored.mosiPin) &&
+         isAvailablePin(stored.misoPin) &&
+         isAvailablePin(stored.sckPin);
+}
+
+void applyStoredNRF24Config(const StoredNRF24Config& stored) {
+  nrf24Config.cePin = stored.cePin;
+  nrf24Config.csnPin = stored.csnPin;
+  nrf24Config.mosiPin = stored.mosiPin;
+  nrf24Config.misoPin = stored.misoPin;
+  nrf24Config.sckPin = stored.sckPin;
+  if ((nrf24Config.cePin == CC1101_GDO0) != (nrf24Config.csnPin == CC1101_CS)) {
+    setDefaultNRF24BusPins();
+  }
+}
+
+void runSpectrumAnalyzer() {
+  if (!inSpectrumAnalyzer) return;
+  
+  unsigned long currentTime = millis();
+  if (currentTime - lastSpectrumUpdate < SPECTRUM_UPDATE_INTERVAL) {
+    return;
+  }
+  lastSpectrumUpdate = currentTime;
+  
+  for (int i = 0; i < SPECTRUM_CHANNELS; i++) {
+    radio.setChannel(i);
+    bool carrier = radio.testCarrier();
+    
+    if (carrier) {
+      if (spectrumValues[i] < 100) spectrumValues[i] += 8; 
+    } else {
+      if (spectrumValues[i] > 0) spectrumValues[i] -= 2;
+    }
+  }
+  
+  display.clearDisplay();
+  
+  uint8_t maxVal = 0;
+  for (int i = 0; i < SPECTRUM_CHANNELS; i++) {
+    if (spectrumValues[i] > maxVal) maxVal = spectrumValues[i];
+  }
+  
+  if (maxVal > 0) {
+    for (int i = 0; i < SPECTRUM_CHANNELS; i++) {
+      int barWidth = 128 / SPECTRUM_CHANNELS;
+      int x = i * barWidth;
+      
+      int height = map(spectrumValues[i], 0, maxVal, 0, 50);
+      
+      if (height > 0) {
+        for (int h = 0; h < height; h++) {
+          int y = 63 - h;
+          display.drawPixel(x, y, SH110X_WHITE);
+          if (barWidth > 1) display.drawPixel(x + 1, y, SH110X_WHITE);
+        }
+      }
+    }
+  }
+  
+  // Spectrum freq
+  display.setTextSize(1);
+  display.setTextColor(SH110X_WHITE);
+  display.setCursor(3, 1);
+  display.print(F("2.4"));
+  display.setCursor(51, 1);
+  display.print(F("2.45"));
+  display.setCursor(108, 1);
+  display.print(F("2.5"));
+  
+  display.display();
+}
+
+void saveNRF24Config() {
+  if (!ensureGPIOStorageReady()) {
+    return;
+  }
+
+  StoredNRF24Config stored = {
+    NRF24_CONFIG_SIGNATURE,
+    nrf24Config.cePin,
+    nrf24Config.csnPin,
+    nrf24Config.mosiPin,
+    nrf24Config.misoPin,
+    nrf24Config.sckPin
+  };
+  EEPROM.put(0, stored);
+  if (EEPROM.commit()) {
+    Serial.println(F("NRF24 config saved"));
+  } else {
+    Serial.println(F("Error saving NRF24 config"));
+  }
+}
+
+void loadNRF24Config() {
+  setDefaultNRF24Config();
+  if (!ensureGPIOStorageReady()) {
+    return;
+  }
+
+  StoredNRF24Config stored;
+  EEPROM.get(0, stored);
+  if (validateStoredNRF24Config(stored)) {
+    applyStoredNRF24Config(stored);
+    Serial.println(F("NRF24 config loaded from device"));
+    return;
+  }
+
+  Serial.println(F("No NRF24 config in device, using defaults"));
+}
+
+void resetGPIOConfigToDefaults() {
+  setDefaultNRF24Config();
+  saveNRF24Config();
+  iButtonPinIndex = 5;
+  saveIButtonConfig();
+}
+
+void saveIButtonConfig() {
+  if (!ensureGPIOStorageReady()) {
+    return;
+  }
+
+  StoredIButtonConfig stored = {IBUTTON_CONFIG_SIGNATURE, iButtonPinIndex};
+  EEPROM.put(IBUTTON_CONFIG_EEPROM_ADDRESS, stored);
+  if (EEPROM.commit()) {
+    Serial.println(F("iButton pin saved"));
+  } else {
+    Serial.println(F("Error saving iButton pin"));
+  }
+}
+
+void loadIButtonConfig() {
+  if (!ensureGPIOStorageReady()) {
+    return;
+  }
+
+  StoredIButtonConfig stored;
+  EEPROM.get(IBUTTON_CONFIG_EEPROM_ADDRESS, stored);
+  if (stored.signature == IBUTTON_CONFIG_SIGNATURE && stored.pinIndex < IBUTTON_PINS_COUNT) {
+    iButtonPinIndex = stored.pinIndex;
+    iButtonPin = iButtonPins[iButtonPinIndex];
+    Serial.println(F("iButton pin loaded from device"));
+  }
+}
+
+static const char* getNRF24PinName(byte pin) {
+  if (pin == CC1101_GDO0 || pin == CC1101_CS) {
+    return CC1101_PIN_NAME;
+  }
+  for (byte i = 0; i < AVAILABLE_PINS_COUNT; i++) {
+    if (pin == availablePins[i]) return pinNames[i];
+  }
+  return "?";
+}
+
+void displayNRF24Menu(int previousIndex = -1) {
+  displaySubmenu(display, nrf24MenuItems, NRF24_MENU_ITEM_COUNT, nrf24MenuIndex, previousIndex);
+}
+
+static int16_t getNRF24ConfigArrowY(byte selection) {
+  return 19 + selection * 8;
+}
+
+static void drawNRF24ConfigFrame(int16_t arrowY = -1) {
+  if (arrowY < 0) arrowY = getNRF24ConfigArrowY(nrf24ConfigIndex);
+
+  display.clearDisplay();
+  display.setTextSize(1);
+  // Config can be opened directly after a list-style submenu, which leaves
+  // the display text color set to black. Always restore the screen state here.
+  display.setTextColor(SH110X_WHITE);
+  display.setTextWrap(false);
+  display.setCursor(3, 3);
+  display.println(F("Config"));
+  display.println(F("====================="));
+  const char* labels[] = {"3(GDO0): ", "4(CSN):  ", "5(SCK):  ", "6(MOSI): ", "7(MISO): "};
+  byte* pins[] = {&nrf24Config.cePin, &nrf24Config.csnPin, &nrf24Config.sckPin, &nrf24Config.mosiPin, &nrf24Config.misoPin};
+  for (byte i = 0; i < 5; i++) {
+    display.print(F("  "));
+    display.print(labels[i]);
+    display.println(getNRF24PinName(*pins[i]));
+  }
+  display.setCursor(0, arrowY);
+  display.print(F(">"));
+  display.display();
+}
+
+void displayNRF24Config(int previousIndex = -1) {
+  if (previousIndex < 0 || previousIndex == nrf24ConfigIndex) {
+    drawNRF24ConfigFrame();
+    return;
+  }
+
+  int16_t fromY = getNRF24ConfigArrowY(previousIndex);
+  int16_t toY = getNRF24ConfigArrowY(nrf24ConfigIndex);
+  const byte steps = 4;
+  for (byte step = 1; step <= steps; step++) {
+    int progress = (step * 100) / steps;
+    int eased = progress < 50
+      ? (2 * progress * progress) / 100
+      : 100 - (2 * (100 - progress) * (100 - progress)) / 100;
+    int16_t arrowY = fromY + ((toY - fromY) * eased) / 100;
+    drawNRF24ConfigFrame(arrowY);
+    delay(1);
+  }
+  drawNRF24ConfigFrame(toY);
+}
+
+void displayJammingMenu(int previousIndex = -1) {
+  displaySubmenu(display, jammingModes, JAMMING_MODE_COUNT, jammingModeIndex, previousIndex);
+}
+
+void displayJammingActive() {
+  display.clearDisplay();
+  display.drawBitmap(0, 12, image_Scanning_short_bits, 96, 52, 1);
+  display.setTextColor(1);
+  display.setTextSize(1);
+  display.setTextWrap(false);
+  display.setCursor(66, 5);
+  display.print(F("Jamming..."));
+  display.display();
+}
+
+void displayNRF24Error() {
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SH110X_WHITE);
+  display.setCursor(11, 20);
+  display.print("NRF24 init failed.");
+  display.setCursor(29, 32);
+  display.print("ERROR: 0x002");
+  display.display();
+}
+
+void resetNRF24InputStates() {
+  buttonUp.resetStates();
+  buttonDown.resetStates();
+  buttonOK.resetStates();
+  buttonBack.resetStates();
+}
+
+void showNRF24InitError(byte returnIndex) {
+  inNRF24Submenu = true;
+  inJammingMenu = false;
+  inJammingActive = false;
+  inNRF24Config = false;
+  inSpectrumAnalyzer = false;
+  inNRF24InitError = true;
+  nrf24InitErrorReturnIndex = returnIndex;
+  nrf24MenuIndex = returnIndex;
+  resetNRF24InputStates();
+  displayNRF24Error();
+}
+
+void returnToNRF24Menu(byte menuIndex) {
+  inNRF24Submenu = true;
+  inJammingMenu = false;
+  inJammingActive = false;
+  inNRF24Config = false;
+  inSpectrumAnalyzer = false;
+  inNRF24InitError = false;
+  nrf24MenuIndex = menuIndex;
+  gpioMenuIndex = 1;
+  resetNRF24InputStates();
+  displayNRF24Menu();
+}
+
+bool initializeNRF24() {
+  loadNRF24Config();
+  pinMode(nrf24Config.csnPin, OUTPUT);
+  digitalWrite(nrf24Config.csnPin, HIGH);
+  pinMode(nrf24Config.cePin, OUTPUT);
+  digitalWrite(nrf24Config.cePin, LOW);
+  NRFSPI->begin((int8_t)nrf24Config.sckPin, (int8_t)nrf24Config.misoPin, (int8_t)nrf24Config.mosiPin, (int8_t)nrf24Config.csnPin);
+  delay(10);
+  if (radio.begin(NRFSPI, (rf24_gpio_pin_t)nrf24Config.cePin, (rf24_gpio_pin_t)nrf24Config.csnPin)) {
+    Serial.println(F("NRF24 initialized"));
+    return true;
+  }
+  Serial.println(F("NRF24 init failed"));
+  displayNRF24Error();
+  return false;
+}
+
+void startNRFJamming() {
+  radio.setPALevel(RF24_PA_MAX);
+  if (!radio.setDataRate(RF24_2MBPS)) Serial.println(F("Data rate fail"));
+  radio.setAddressWidth(3);
+  radio.setPayloadSize(2);
+  radio.startConstCarrier(RF24_PA_MAX, 45);
+  byte* channels;
+  byte channel_count;
+  switch (jammingModeIndex) {
+    case 0: channels = wifi_channels; channel_count = sizeof(wifi_channels); Serial.println(F("WiFi jamming")); break;
+    case 1: channels = ble_channels; channel_count = sizeof(ble_channels); Serial.println(F("BLE jamming")); break;
+    case 2: channels = ble_adv_channels; channel_count = sizeof(ble_adv_channels); Serial.println(F("BLE ADV jamming")); break;
+    case 3: channels = bluetooth_channels; channel_count = sizeof(bluetooth_channels); Serial.println(F("Bluetooth jamming")); break;
+    case 4: channels = usb_channels; channel_count = sizeof(usb_channels); Serial.println(F("USB jamming")); break;
+    case 5: channels = video_channels; channel_count = sizeof(video_channels); Serial.println(F("Video jamming")); break;
+    case 6: channels = rc_channels; channel_count = sizeof(rc_channels); Serial.println(F("RadioCH jamming")); break;
+    case 7: channels = zigbee_channels; channel_count = sizeof(zigbee_channels); Serial.println(F("Zigbee jamming")); break;
+    case 8: channels = drone_channels; channel_count = sizeof(drone_channels); Serial.println(F("Drone jamming")); break;
+    case 9: channels = full_channels; channel_count = sizeof(full_channels); Serial.println(F("Full jamming")); break;
+  }
+  int ptr_hop = 0;
+  while (inJammingActive) {
+    radio.setChannel(channels[ptr_hop]);
+    delay(2);
+    ptr_hop = (ptr_hop + 1) % channel_count;
+    buttonBack.tick();
+    if (buttonBack.isClick()) {
+      radio.stopConstCarrier();
+      radio.powerDown();
+      inJammingActive = false;
+      displayJammingMenu();
+      break;
+    }
+  }
+}
+
+static void selectNRF24CC1101Pins() {
+  nrf24Config.cePin = CC1101_GDO0;
+  nrf24Config.csnPin = CC1101_CS;
+}
+
+static void stepNRF24BusPin(byte configIndex) {
+  if (isNRF24UsingCC1101Pins()) {
+    setDefaultNRF24BusPins();
+    return;
+  }
+
+  byte* configPins[] = {&nrf24Config.cePin, &nrf24Config.csnPin};
+  byte currentPinIndex = 0;
+  for (byte i = 0; i < AVAILABLE_PINS_COUNT; i++) {
+    if (*configPins[configIndex] == availablePins[i]) {
+      currentPinIndex = i;
+      break;
+    }
+  }
+
+  byte newPinIndex = currentPinIndex + 1;
+  if (newPinIndex >= AVAILABLE_PINS_COUNT) {
+    selectNRF24CC1101Pins();
+  } else {
+    *configPins[configIndex] = availablePins[newPinIndex];
+  }
+}
+
+void handleNRF24Config() {
+  static MenuButtonState upHeld;
+  static MenuButtonState downHeld;
+  buttonBack.tick();
+  if (isMenuButtonPress(BUTTON_UP, upHeld)) {
+    byte previousIndex = nrf24ConfigIndex;
+    nrf24ConfigIndex = (nrf24ConfigIndex - 1 + 5) % 5;
+    displayNRF24Config(previousIndex);
+  }
+  if (isMenuButtonPress(BUTTON_DOWN, downHeld)) {
+    byte previousIndex = nrf24ConfigIndex;
+    nrf24ConfigIndex = (nrf24ConfigIndex + 1) % 5;
+    displayNRF24Config(previousIndex);
+  }
+  if (buttonOK.isClick()) {
+    byte* configPins[] = {&nrf24Config.cePin, &nrf24Config.csnPin, &nrf24Config.sckPin, &nrf24Config.mosiPin, &nrf24Config.misoPin};
+    byte pinNum[] = {3, 4, 5, 6, 7};
+    if (nrf24ConfigIndex < 2) {
+      stepNRF24BusPin(nrf24ConfigIndex);
+    } else {
+      byte currentPinIndex = 0;
+      for (byte i = 0; i < AVAILABLE_PINS_COUNT; i++) {
+        if (*configPins[nrf24ConfigIndex] == availablePins[i]) {
+          currentPinIndex = i;
+          break;
+        }
+      }
+      byte newPinIndex = (currentPinIndex + 1) % AVAILABLE_PINS_COUNT;
+      *configPins[nrf24ConfigIndex] = availablePins[newPinIndex];
+    }
+    saveNRF24Config();
+    displayNRF24Config();
+    Serial.printf("Pin %d to %s\n", pinNum[nrf24ConfigIndex], getNRF24PinName(*configPins[nrf24ConfigIndex]));
+  }
+  if (buttonBack.isClick()) {
+    saveNRF24Config();
+    inNRF24Config = false;
+    nrf24MenuIndex = 2;
+    displayNRF24Menu();
+  }
+}
+
+void handleJammingMenu() {
+  static MenuButtonState upHeld;
+  static MenuButtonState downHeld;
+
+  buttonUp.tick(); buttonDown.tick(); buttonOK.tick(); buttonBack.tick();
+
+  const unsigned long repeatDelayMs = getMenuSubmenuRepeatDelay(submenu == 1);
+  if (isMenuButtonPress(BUTTON_UP, upHeld, repeatDelayMs)) {
+    byte previousIndex = jammingModeIndex;
+    jammingModeIndex = (jammingModeIndex - 1 + JAMMING_MODE_COUNT) % JAMMING_MODE_COUNT;
+    displayJammingMenu(previousIndex);
+  }
+  if (isMenuButtonPress(BUTTON_DOWN, downHeld, repeatDelayMs)) {
+    byte previousIndex = jammingModeIndex;
+    jammingModeIndex = (jammingModeIndex + 1) % JAMMING_MODE_COUNT;
+    displayJammingMenu(previousIndex);
+  }
+  if (buttonOK.isClick()) {
+    Serial.printf("Selected mode: %s\n", jammingModes[jammingModeIndex]);
+    if (initializeNRF24()) {
+      inJammingActive = true;
+      displayJammingActive();
+      startNRFJamming();
+    } else {
+      showNRF24InitError(0);
+      return;
+    }
+  }
+  if (buttonBack.isClick()) {
+    if (inJammingActive) {
+      radio.stopConstCarrier();
+      radio.powerDown();
+      inJammingActive = false;
+      displayJammingMenu();
+    } else {
+      returnToNRF24Menu(0);
+    }
+  }
+}
+
+void handleNRF24Submenu() {
+  if (inNRF24InitError) {
+    buttonUp.resetStates();
+    buttonDown.resetStates();
+    buttonOK.resetStates();
+    buttonBack.tick();
+    if (buttonBack.isClick()) {
+      returnToNRF24Menu(nrf24InitErrorReturnIndex);
+    }
+    return;
+  }
+
+  if (inSpectrumAnalyzer) {
+    runSpectrumAnalyzer();
+    buttonUp.tick(); buttonDown.tick(); buttonOK.tick(); buttonBack.tick();
+    if (buttonBack.isClick()) {
+      radio.stopListening();
+      radio.powerDown();
+      inNRF24Submenu = true;
+      inSpectrumAnalyzer = false;
+      nrf24MenuIndex = 1;
+      memset(spectrumValues, 0, sizeof(spectrumValues));
+      resetNRF24InputStates();
+      displayNRF24Menu();
+    }
+    return;
+  }
+  if (inJammingMenu || inJammingActive) return handleJammingMenu();
+  if (inNRF24Config) return handleNRF24Config();
+  static MenuButtonState upHeld;
+  static MenuButtonState downHeld;
+  buttonUp.tick(); buttonDown.tick(); buttonOK.tick(); buttonBack.tick();
+  const unsigned long repeatDelayMs = getMenuSubmenuRepeatDelay(submenu == 1);
+  if (isMenuButtonPress(BUTTON_UP, upHeld, repeatDelayMs)) {
+    byte previousIndex = nrf24MenuIndex;
+    nrf24MenuIndex = (nrf24MenuIndex - 1 + NRF24_MENU_ITEM_COUNT) % NRF24_MENU_ITEM_COUNT;
+    displayNRF24Menu(previousIndex);
+  }
+  if (isMenuButtonPress(BUTTON_DOWN, downHeld, repeatDelayMs)) {
+    byte previousIndex = nrf24MenuIndex;
+    nrf24MenuIndex = (nrf24MenuIndex + 1) % NRF24_MENU_ITEM_COUNT;
+    displayNRF24Menu(previousIndex);
+  }
+  if (buttonOK.isClick()) {
+    Serial.printf("Selected: %s\n", nrf24MenuItems[nrf24MenuIndex]);
+    switch (nrf24MenuIndex) {
+      case 0:
+        inJammingMenu = true;
+        inJammingActive = false;
+        jammingModeIndex = 0;
+        loadNRF24Config();
+        displayJammingMenu();
+        break;
+      case 1:
+        loadNRF24Config();
+        if (initializeNRF24()) {
+          inSpectrumAnalyzer = true;
+          memset(spectrumValues, 0, sizeof(spectrumValues));
+          radio.startListening();
+          radio.setAutoAck(false);
+          radio.setPALevel(RF24_PA_MAX);
+          radio.setDataRate(RF24_2MBPS);
+          radio.setCRCLength(RF24_CRC_DISABLED);
+          lastSpectrumUpdate = millis();
+        } else {
+          showNRF24InitError(1);
+        }
+        break;
+      case 2:
+        inNRF24Config = true;
+        nrf24ConfigIndex = 0;
+        loadNRF24Config();
+        displayNRF24Config();
+        break;
+    }
+  }
+  if (buttonBack.isClick()) {
+    inNRF24Submenu = inJammingMenu = inJammingActive = inSpectrumAnalyzer = inNRF24InitError = false;
+    displayGPIOMenu(display, gpioMenuIndex);
+  }
+}
+
+String formatIButtonCode(const byte* data) {
+  char code[17];
+  for (int i = 0; i < 8; i++) {
+    snprintf(code + (i * 2), sizeof(code) - (i * 2), "%02X", data[i]);
+  }
+  code[16] = '\0';
+  return String(code);
+}
+
+String getIButtonTypeName(byte type) {
+  switch (type) {
+    case 0x01: return F("DS1990/DS2401");
+    case 0x81: return F("DS1990A/RW1990");
+    default: {
+      String st = F("Unknown 0x");
+      if (type < 0x10) st += "0";
+      st += String(type, HEX);
+      st.toUpperCase();
+      return st;
+    }
+  }
+}
+
+void initIButtonWire() {
+  byte pin = iButtonPins[iButtonPinIndex];
+  if (iButtonWire == nullptr || iButtonPin != pin) {
+    if (iButtonWire != nullptr) {
+      delete iButtonWire;
+      iButtonWire = nullptr;
+    }
+    iButtonPin = pin;
+    // Release the newly selected line before the first bus reset.  This avoids
+    // interpreting the transition after a pin change as a presence pulse.
+    pinMode(iButtonPin, INPUT_PULLUP);
+    delay(5);
+    iButtonWire = new OneWire(iButtonPin);
+  }
+}
+
+bool detectIButton() {
+  if (iButtonWire == nullptr) return false;
+  return iButtonWire->reset() != 0;
+}
+
+bool readIButtonKey() {
+  if (iButtonWire == nullptr) return false;
+
+  // A floating/noisy line may look like a device during reset and return an
+  // all-zero ROM.  Accept only a complete, CRC-valid ROM from the search.
+  for (byte attempt = 0; attempt < 3; attempt++) {
+    byte address[8];
+    iButtonWire->reset_search();
+    bool found = iButtonWire->search(address);
+    iButtonWire->reset_search();
+    if (!found) continue;
+
+    bool allZero = true;
+    bool allFF = true;
+    for (byte i = 0; i < 8; i++) {
+      allZero &= (address[i] == 0x00);
+      allFF &= (address[i] == 0xFF);
+    }
+    if (allZero || allFF || OneWire::crc8(address, 7) != address[7]) {
+      delay(2);
+      continue;
+    }
+
+    memcpy(iButtonBuffer, address, sizeof(iButtonBuffer));
+    iButtonType = iButtonBuffer[0];
+    iButtonBits = 64;
+    iButtonCrcOk = true;
+    return true;
+  }
+
+  iButtonCrcOk = false;
+  return false;
+}
+
+static void writeIButtonByteRW1990(byte data) {
+  for (byte bit = 0; bit < 8; bit++) {
+    digitalWrite(iButtonPin, LOW);
+    pinMode(iButtonPin, OUTPUT);
+    delayMicroseconds((data & 1) ? 60 : 10);
+    pinMode(iButtonPin, INPUT);
+    digitalWrite(iButtonPin, HIGH);
+    delay(10);
+    data >>= 1;
+  }
+}
+
+bool writeIButtonKey() {
+  if (iButtonWire == nullptr) return false;
+  byte expected[8];
+  memcpy(expected, iButtonBuffer, sizeof(expected));
+
+  // RW1990: unlock writing, transfer the ROM, then lock it again.
+  iButtonWire->reset();
+  iButtonWire->skip();
+  iButtonWire->write(0xD1);
+  digitalWrite(iButtonPin, LOW);
+  pinMode(iButtonPin, OUTPUT);
+  delayMicroseconds(60);
+  pinMode(iButtonPin, INPUT);
+  digitalWrite(iButtonPin, HIGH);
+  delay(10);
+
+  iButtonWire->reset();
+  iButtonWire->skip();
+  iButtonWire->write(0xD5);
+  for (byte i = 0; i < 8; i++) {
+    writeIButtonByteRW1990(iButtonBuffer[i]);
+  }
+
+  iButtonWire->reset();
+  iButtonWire->write(0xD1);
+  digitalWrite(iButtonPin, LOW);
+  pinMode(iButtonPin, OUTPUT);
+  delayMicroseconds(10);
+  pinMode(iButtonPin, INPUT);
+  digitalWrite(iButtonPin, HIGH);
+  delay(500);
+
+  return readIButtonKey() && memcmp(expected, iButtonBuffer, sizeof(expected)) == 0;
+}
+
+void stopIButtonEmulation() {
+  if (iButtonHub != nullptr && iButtonEmulatedKey != nullptr) {
+    iButtonHub->detach(*iButtonEmulatedKey);
+  }
+  delete iButtonEmulatedKey;
+  delete iButtonHub;
+  iButtonEmulatedKey = nullptr;
+  iButtonHub = nullptr;
+  iButtonEmulationActive = false;
+}
+
+bool startIButtonEmulation() {
+  stopIButtonEmulation();
+  iButtonPin = iButtonPins[iButtonPinIndex];
+  iButtonHub = new OneWireHub(iButtonPin);
+  iButtonEmulatedKey = new DS2401(
+    iButtonBuffer[0], iButtonBuffer[1], iButtonBuffer[2], iButtonBuffer[3],
+    iButtonBuffer[4], iButtonBuffer[5], iButtonBuffer[6]
+  );
+  if (iButtonHub == nullptr || iButtonEmulatedKey == nullptr) {
+    stopIButtonEmulation();
+    return false;
+  }
+  iButtonHub->attach(*iButtonEmulatedKey);
+  iButtonEmulationActive = true;
+  return true;
+}
+
+void displayIButtonMenu(int previousIndex = -1) {
+  displaySubmenu(display, iButtonMenuItems, IBUTTON_MENU_ITEM_COUNT, iButtonMenuIndex, previousIndex);
+}
+
+struct IButtonMarqueeState {
+  String text;
+  unsigned long startedAt = 0;
+};
+
+static void printIButtonMarquee(const String& value, int16_t x, int16_t y,
+                                IButtonMarqueeState& state) {
+  const int visibleChars = 15;
+  if (value.length() <= visibleChars) {
+    state.text = "";
+    state.startedAt = 0;
+    display.setCursor(x, y);
+    display.print(value);
+    return;
+  }
+
+  if (state.text != value) {
+    state.text = value;
+    state.startedAt = millis();
+  }
+
+  String marquee = value + F("   ");
+  int maxOffset = marquee.length() - visibleChars;
+  int offset = 0;
+  const unsigned long initialPauseMs = 400;
+  const unsigned long loopPauseMs = 400;
+  const unsigned long stepMs = 200;
+  unsigned long elapsed = millis() - state.startedAt;
+  if (elapsed >= initialPauseMs) {
+    unsigned long scrollDuration = static_cast<unsigned long>(maxOffset) * stepMs;
+    unsigned long cycleDuration = scrollDuration + loopPauseMs + scrollDuration + loopPauseMs;
+    unsigned long cyclePosition = (elapsed - initialPauseMs) % cycleDuration;
+    if (cyclePosition < scrollDuration) {
+      offset = cyclePosition / stepMs;
+    } else if (cyclePosition < scrollDuration + loopPauseMs) {
+      offset = maxOffset;
+    } else if (cyclePosition < scrollDuration + loopPauseMs + scrollDuration) {
+      offset = maxOffset - ((cyclePosition - scrollDuration - loopPauseMs) / stepMs);
+    }
+  }
+
+  display.setCursor(x, y);
+  display.print(marquee.substring(offset, offset + visibleChars));
+}
+
+void displayIButtonReadWaiting() {
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(1);
+  display.setTextWrap(false);
+  display.setCursor(3, 3);
+  display.print("Waiting iButton...");
+  display.drawBitmap(78, 19, image_iButtonKey_bits, 49, 44, 1);
+  display.setCursor(5, 19);
+  display.print("Press UP/DOWN");
+  display.setCursor(5, 29);
+  display.print("to change pin");
+  display.setCursor(86, 42);
+  display.print(iButtonPinNames[iButtonPinIndex]);
+  display.display();
+}
+
+void displayIButtonDetected() {
+  static IButtonMarqueeState codeMarquee;
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(1);
+  display.setTextWrap(false);
+  display.setCursor(2, 2);
+  display.print("iButton detected:");
+  display.setCursor(5, 14);
+  display.print("Code:");
+  display.setCursor(5, 26);
+  display.print("Type:");
+  display.setCursor(5, 38);
+  display.print("Bits:");
+  display.setCursor(17, 52);
+  if (iButtonCrcOk) {
+    display.print("Hold OK to save.");
+  } else {
+    display.setCursor(48, 53);
+    display.print("CRC ERROR!");
+  }
+
+  String code = formatIButtonCode(iButtonBuffer);
+  display.setCursor(35, 14);
+  printIButtonMarquee(code, 35, 14, codeMarquee);
+  display.setCursor(35, 26);
+  display.print("0x");
+  if (iButtonType < 0x10) display.print("0");
+  display.print(iButtonType, HEX);
+  display.setCursor(35, 38);
+  display.print(iButtonBits);
+  display.display();
+}
+
+void displayIButtonWriteWaiting() {
+  static IButtonMarqueeState fileMarquee;
+  static IButtonMarqueeState codeMarquee;
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(1);
+  display.setTextWrap(false);
+
+  display.setCursor(3, 3);
+  display.print(F("File: "));
+  printIButtonMarquee(iButtonExplorer.selectedFile, 39, 3, fileMarquee);
+  uint8_t dataY = 14;
+
+  display.setCursor(3, dataY);
+  display.print(F("Code: "));
+  printIButtonMarquee(formatIButtonCode(iButtonBuffer), 39, dataY, codeMarquee);
+  dataY = 26;
+  String st = "Type: " + getIButtonTypeName(iButtonType);
+  display.setCursor(3, dataY);
+  display.println(st);
+  st = "Bits: " + String(iButtonBits);
+  dataY = 38;
+  display.setCursor(3, dataY);
+  display.println(st);
+  display.setCursor(3, 54);
+  display.print(F("Pin:"));
+  display.print(iButtonPinNames[iButtonPinIndex]);
+  display.setCursor(67, 54);
+  display.print(F("Writing..."));
+
+  display.display();
+}
+
+void displayIButtonEmulating() {
+  static IButtonMarqueeState fileMarquee;
+  static IButtonMarqueeState codeMarquee;
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SH110X_WHITE);
+  display.setTextWrap(false);
+
+  display.setCursor(3, 3);
+  display.print(F("File: "));
+  printIButtonMarquee(iButtonExplorer.selectedFile, 39, 3, fileMarquee);
+  uint8_t dataY = 14;
+
+  String code = formatIButtonCode(iButtonBuffer);
+  display.setCursor(3, dataY);
+  display.print(F("Code: "));
+  printIButtonMarquee(code, 39, dataY, codeMarquee);
+  dataY = 26;
+  String st = "Type: " + getIButtonTypeName(iButtonType);
+  display.setCursor(3, dataY);
+  display.println(st);
+  st = "Bits: " + String(iButtonBits);
+  dataY = 38;
+  display.setCursor(3, dataY);
+  display.println(st);
+  display.setCursor(3, 54);
+  display.print(F("Pin:"));
+  display.print(iButtonPinNames[iButtonPinIndex]);
+  display.setCursor(55, 54);
+  display.print(F("Emulating..."));
+  display.display();
+}
+
+void displayIButtonFileError(const __FlashStringHelper* message) {
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(SH110X_WHITE);
+  display.setTextWrap(false);
+  display.setCursor(3, 3);
+  display.print(F("iButton file"));
+  display.setCursor(1, 10);
+  display.println(F("---------------------"));
+  display.setCursor(3, 26);
+  display.print(message);
+  display.display();
+  delay(1000);
+}
+
+void displayGPIOPlaceholder() {
+  display.clearDisplay();
+  display.setTextColor(SH110X_WHITE);
+  display.setTextWrap(false);
+  display.setTextSize(2);
+  display.setCursor(10, 8);
+  display.print(gpioMenuItems[gpioMenuIndex]);
+  display.setTextSize(1);
+  display.setCursor(10, 34);
+  display.print(F("Coming soon"));
+  display.display();
+}
+
+void displayST25R3916Menu(int previousIndex = -1) {
+  displaySubmenu(display, st25r3916MenuItems, ST25R3916_MENU_ITEM_COUNT, st25r3916MenuIndex, previousIndex);
+}
+
+void displayST25R3916Placeholder() {
+  display.clearDisplay();
+  display.setTextColor(SH110X_WHITE);
+  display.setTextWrap(false);
+  display.setTextSize(1);
+  display.setCursor(24, 29);
+  display.print("COMING SOON...");
+  display.display();
+}
+
+
+bool saveIButtonToSD() {
+  if (!SD.begin(SD_CS, sdSPI)) {
+    Serial.println(F("SD init failed"));
+    return false;
+  }
+  if (!SD.exists(IBUTTON_DIR)) SD.mkdir(IBUTTON_DIR);
+  int index = 1;
+  String filePath;
+  while (true) {
+    filePath = String(IBUTTON_DIR) + "/iButton_" + String(index) + ".ibtn";
+    if (!SD.exists(filePath)) break;
+    index++;
+  }
+  File file = SD.open(filePath, FILE_WRITE);
+  if (!file) {
+    Serial.print(F("Failed to create file: "));
+    Serial.println(filePath);
+    return false;
+  }
+  file.println(F("Filetype: Flipper iButton key"));
+  file.println(F("Version: 1"));
+  file.println(F("# Key type can be Cyfral, Dallas or Metakom"));
+  file.println(F("Key type: Dallas"));
+  file.println(F("# Data size for Cyfral is 2, for Metakom is 4, for Dallas is 8"));
+  file.print(F("Data: "));
+  for (int i = 0; i < 8; i++) {
+    if (iButtonBuffer[i] < 0x10) file.print("0");
+    file.print(iButtonBuffer[i], HEX);
+    if (i < 7) file.print(" ");
+  }
+  file.println();
+  file.close();
+  Serial.print(F("Saved iButton to "));
+  Serial.println(filePath);
+  return true;
+}
+
+bool loadIButtonFromSD(const String& fileName) {
+  File file = SD.open(iButtonExplorer.currentDir + "/" + fileName, FILE_READ);
+  if (!file) {
+    Serial.print(F("Failed to open file: "));
+    Serial.println(fileName);
+    return false;
+  }
+  bool hasCode = false;
+  bool flipperFormat = false;
+  bool supportedType = true;
+  String keyType = "";
+  String line;
+  while (file.available()) {
+    line = file.readStringUntil('\n');
+    line.trim();
+    if (line.startsWith("#") || line.length() == 0) {
+      continue;
+    }
+    if (line.startsWith("Filetype:")) {
+      String fileType = line.substring(9);
+      fileType.trim();
+      flipperFormat = fileType.equalsIgnoreCase("Flipper iButton key");
+    } else if (line.startsWith("Key type:")) {
+      keyType = line.substring(9);
+      keyType.trim();
+      supportedType = keyType.equalsIgnoreCase("Dallas");
+    } else if (line.startsWith("Data:")) {
+      String dataStr = line.substring(5);
+      dataStr.trim();
+      dataStr.replace(" ", "");
+      dataStr.replace(":", "");
+      if (keyType.length() > 0 && !keyType.equalsIgnoreCase("Dallas")) {
+        supportedType = false;
+        continue;
+      }
+      if (dataStr.length() != 16) {
+        file.close();
+        Serial.print(F("Unsupported iButton data size in "));
+        Serial.println(fileName);
+        return false;
+      }
+      for (int i = 0; i < 8; i++) {
+        String byteStr = dataStr.substring(i * 2, i * 2 + 2);
+        iButtonBuffer[i] = strtol(byteStr.c_str(), nullptr, 16);
+      }
+      iButtonType = iButtonBuffer[0];
+      iButtonBits = 64;
+      iButtonCrcOk = OneWire::crc8(iButtonBuffer, 7) == iButtonBuffer[7];
+      hasCode = true;
+    } else if (line.startsWith("Code:") || line.startsWith("Key:")) {
+      String codeStr = line.substring(line.indexOf(':') + 1);
+      codeStr.trim();
+      codeStr.replace(" ", "");
+      codeStr.replace(":", "");
+      if (codeStr.length() < 16) {
+        file.close();
+        return false;
+      }
+      for (int i = 0; i < 8; i++) {
+        String byteStr = codeStr.substring(i * 2, i * 2 + 2);
+        iButtonBuffer[i] = strtol(byteStr.c_str(), nullptr, 16);
+      }
+      iButtonType = iButtonBuffer[0];
+      iButtonBits = 64;
+      iButtonCrcOk = OneWire::crc8(iButtonBuffer, 7) == iButtonBuffer[7];
+      hasCode = true;
+    } else if (line.startsWith("Type:")) {
+      String typeStr = line.substring(5);
+      typeStr.trim();
+      if (typeStr.startsWith("0x") || typeStr.startsWith("0X")) typeStr = typeStr.substring(2);
+      iButtonType = strtol(typeStr.c_str(), nullptr, 16);
+    } else if (line.startsWith("Bits:")) {
+      iButtonBits = line.substring(5).toInt();
+    }
+  }
+  file.close();
+  if (!supportedType) {
+    Serial.print(F("Unsupported iButton key type"));
+    if (keyType.length() > 0) {
+      Serial.print(F(": "));
+      Serial.print(keyType);
+    }
+    Serial.print(F(" in "));
+    Serial.println(fileName);
+    return false;
+  }
+  if (flipperFormat && keyType.length() == 0) {
+    Serial.print(F("Missing iButton key type in "));
+    Serial.println(fileName);
+  }
+  return hasCode;
+}
+
+void resetIButtonInputStates(MenuButtonState& menuUpHeld, MenuButtonState& menuDownHeld,
+                             MenuButtonState& readUpHeld, MenuButtonState& readDownHeld) {
+  buttonUp.resetStates();
+  buttonDown.resetStates();
+  buttonOK.resetStates();
+  buttonBack.resetStates();
+  menuUpHeld = {};
+  menuDownHeld = {};
+  readUpHeld = {};
+  readDownHeld = {};
+}
+
+void handleIButtonSubmenu() {
+  static MenuButtonState menuUpHeld;
+  static MenuButtonState menuDownHeld;
+  static MenuButtonState readUpHeld;
+  static MenuButtonState readDownHeld;
+  buttonUp.tick(); buttonDown.tick(); buttonOK.tick(); buttonBack.tick();
+
+  static unsigned long lastMarqueeDrawAt = 0;
+  if ((iButtonState == IBUTTON_READ_DETECTED || iButtonState == IBUTTON_WRITE_WAIT ||
+       iButtonState == IBUTTON_EMULATE_ACTIVE) &&
+      millis() - lastMarqueeDrawAt >= 200) {
+    lastMarqueeDrawAt = millis();
+    if (iButtonState == IBUTTON_READ_DETECTED) displayIButtonDetected();
+    else if (iButtonState == IBUTTON_WRITE_WAIT) displayIButtonWriteWaiting();
+    else displayIButtonEmulating();
+  }
+
+  if (iButtonState == IBUTTON_MENU) {
+    const unsigned long repeatDelayMs = getMenuSubmenuRepeatDelay(submenu == 1);
+    if (isMenuButtonPress(BUTTON_UP, menuUpHeld, repeatDelayMs)) {
+      byte previousIndex = iButtonMenuIndex;
+      iButtonMenuIndex = (iButtonMenuIndex - 1 + IBUTTON_MENU_ITEM_COUNT) % IBUTTON_MENU_ITEM_COUNT;
+      displayIButtonMenu(previousIndex);
+    }
+    if (isMenuButtonPress(BUTTON_DOWN, menuDownHeld, repeatDelayMs)) {
+      byte previousIndex = iButtonMenuIndex;
+      iButtonMenuIndex = (iButtonMenuIndex + 1) % IBUTTON_MENU_ITEM_COUNT;
+      displayIButtonMenu(previousIndex);
+    }
+    if (buttonOK.isClick()) {
+      if (iButtonMenuIndex == 0) {
+        iButtonState = IBUTTON_READ_WAIT;
+        initIButtonWire();
+        displayIButtonReadWaiting();
+      } else if (iButtonMenuIndex == 1 || iButtonMenuIndex == 2) {
+        if (!SD.begin(SD_CS, sdSPI)) {
+          display.clearDisplay();
+          display.setTextSize(1);
+          display.setCursor(3, 3);
+          display.println(F("SD init failed"));
+          display.display();
+          delay(1000);
+          displayIButtonMenu();
+        } else {
+          if (!SD.exists(IBUTTON_DIR)) SD.mkdir(IBUTTON_DIR);
+          ExplorerInit(iButtonExplorer, iButtonFileList, IBUTTON_MAX_FILES, iButtonExplorerCfg);
+          ExplorerLoad(iButtonExplorer, iButtonExplorerCfg);
+          iButtonState = (iButtonMenuIndex == 1) ? IBUTTON_WRITE_BROWSE : IBUTTON_EMULATE_BROWSE;
+          ExplorerDraw(iButtonExplorer, display);
+        }
+      }
+    }
+    if (buttonBack.isClick()) {
+      inIButtonSubmenu = false;
+      display.setTextColor(SH110X_WHITE);
+      displayGPIOMenu(display, gpioMenuIndex);
+    }
+    return;
+  }
+
+  if (iButtonState == IBUTTON_READ_WAIT) {
+    if (isMenuButtonPress(BUTTON_UP, readUpHeld)) {
+      // Physical order: UP follows A -> B -> C; DOWN follows A -> F -> E -> D.
+      iButtonPinIndex = (iButtonPinIndex + 1) % IBUTTON_PINS_COUNT;
+      saveIButtonConfig();
+      initIButtonWire();
+      displayIButtonReadWaiting();
+    }
+    if (isMenuButtonPress(BUTTON_DOWN, readDownHeld)) {
+      iButtonPinIndex = (iButtonPinIndex - 1 + IBUTTON_PINS_COUNT) % IBUTTON_PINS_COUNT;
+      saveIButtonConfig();
+      initIButtonWire();
+      displayIButtonReadWaiting();
+    }
+    if (buttonBack.isClick()) {
+      iButtonState = IBUTTON_MENU;
+      resetIButtonInputStates(menuUpHeld, menuDownHeld, readUpHeld, readDownHeld);
+      displayIButtonMenu();
+      return;
+    }
+    if (detectIButton() && readIButtonKey()) {
+      displayIButtonDetected();
+      iButtonState = IBUTTON_READ_DETECTED;
+    }
+    return;
+  }
+
+  if (iButtonState == IBUTTON_READ_DETECTED) {
+    if (buttonOK.isClick()) {
+      if (!iButtonCrcOk) {
+        display.clearDisplay();
+        display.setTextSize(1);
+        display.setCursor(10, 16);
+        display.print("CRC ERROR!");
+        display.display();
+        delay(1000);
+        iButtonState = IBUTTON_READ_WAIT;
+        displayIButtonReadWaiting();
+        return;
+      }
+      if (saveIButtonToSD()) {
+        display.clearDisplay();
+        display.drawBitmap(16, 6, image_DolphinSaved_bits, 92, 58, SH110X_WHITE);
+        display.setTextColor(SH110X_WHITE);
+        display.setTextWrap(false);
+        display.setCursor(6, 16);
+        display.print(F("Saved"));
+        display.display();
+        delay(1000);
+      } else {
+        displayIButtonFileError(F("Save failed"));
+      }
+      iButtonState = IBUTTON_READ_WAIT;
+      displayIButtonReadWaiting();
+    }
+    if (buttonBack.isClick()) {
+      iButtonState = IBUTTON_MENU;
+      resetIButtonInputStates(menuUpHeld, menuDownHeld, readUpHeld, readDownHeld);
+      displayIButtonMenu();
+    }
+    return;
+  }
+
+  if (iButtonState == IBUTTON_WRITE_BROWSE) {
+    ExplorerAction action = ExplorerHandle(
+      iButtonExplorer,
+      iButtonExplorerCfg,
+      display,
+      buttonUp.isClick(),
+      buttonDown.isClick(),
+      buttonOK.isClick(),
+      buttonBack.isClick(),
+      buttonBack.isHolded()
+    );
+    if (action == EXPLORER_SELECT_FILE) {
+      if (loadIButtonFromSD(iButtonExplorer.selectedFile)) {
+        initIButtonWire();
+        iButtonWasPresent = false;
+        iButtonState = IBUTTON_WRITE_WAIT;
+        displayIButtonWriteWaiting();
+      } else {
+        displayIButtonFileError(F("Unsupported file"));
+        ExplorerDraw(iButtonExplorer, display);
+      }
+    } else if (action == EXPLORER_EXIT) {
+      iButtonState = IBUTTON_MENU;
+      iButtonMenuIndex = 1;
+      displayIButtonMenu();
+    }
+    return;
+  }
+
+  if (iButtonState == IBUTTON_EMULATE_BROWSE) {
+    ExplorerAction action = ExplorerHandle(
+      iButtonExplorer,
+      iButtonExplorerCfg,
+      display,
+      buttonUp.isClick(),
+      buttonDown.isClick(),
+      buttonOK.isClick(),
+      buttonBack.isClick(),
+      buttonBack.isHolded()
+    );
+    if (action == EXPLORER_SELECT_FILE) {
+      if (loadIButtonFromSD(iButtonExplorer.selectedFile)) {
+        // The original iButton implementation uses GPIO2 as its TX line.
+        iButtonPinIndex = 1;
+        if (startIButtonEmulation()) {
+          iButtonState = IBUTTON_EMULATE_ACTIVE;
+          displayIButtonEmulating();
+        } else {
+          displayIButtonFileError(F("Emulation error"));
+          ExplorerDraw(iButtonExplorer, display);
+        }
+      } else {
+        displayIButtonFileError(F("Unsupported file"));
+        ExplorerDraw(iButtonExplorer, display);
+      }
+    } else if (action == EXPLORER_EXIT) {
+      iButtonState = IBUTTON_MENU;
+      iButtonMenuIndex = 2;
+      displayIButtonMenu();
+    }
+    return;
+  }
+
+  if (iButtonState == IBUTTON_WRITE_WAIT) {
+    if (buttonBack.isClick()) {
+      iButtonState = IBUTTON_WRITE_BROWSE;
+      ExplorerDraw(iButtonExplorer, display);
+      return;
+    }
+    bool present = detectIButton();
+    if (present && !iButtonWasPresent) {
+      bool written = writeIButtonKey();
+      if (written) {
+        display.clearDisplay();
+        display.drawBitmap(3, 9, image_iButtonDolphinSuccess_bits, 92, 55, SH110X_WHITE);
+        display.setTextColor(SH110X_WHITE);
+        display.setTextWrap(false);
+        display.setCursor(54, 10);
+        display.print(F("Successfully"));
+        display.display();
+        delay(1000);
+      }
+      displayIButtonWriteWaiting();
+      iButtonWasPresent = true;
+    } else if (!present) {
+      iButtonWasPresent = false;
+    }
+    return;
+  }
+
+  if (iButtonState == IBUTTON_EMULATE_ACTIVE) {
+    if (buttonBack.isClick()) {
+      stopIButtonEmulation();
+      iButtonState = IBUTTON_EMULATE_BROWSE;
+      ExplorerDraw(iButtonExplorer, display);
+      return;
+    }
+    if (iButtonEmulationActive && iButtonHub != nullptr) {
+      iButtonHub->poll();
+    }
+  }
+}
+
+void handleST25R3916Submenu() {
+  static MenuButtonState upHeld;
+  static MenuButtonState downHeld;
+  buttonBack.tick();
+
+  if (inST25R3916Placeholder) {
+    if (buttonBack.isClick()) {
+      inST25R3916Placeholder = false;
+      buttonUp.resetStates();
+      buttonDown.resetStates();
+      buttonOK.resetStates();
+      buttonBack.resetStates();
+      displayST25R3916Menu();
+    }
+    return;
+  }
+
+  buttonUp.tick();
+  buttonDown.tick();
+  buttonOK.tick();
+  const unsigned long repeatDelayMs = getMenuSubmenuRepeatDelay(submenu == 1);
+  if (isMenuButtonPress(BUTTON_UP, upHeld, repeatDelayMs)) {
+    byte previousIndex = st25r3916MenuIndex;
+    st25r3916MenuIndex = (st25r3916MenuIndex - 1 + ST25R3916_MENU_ITEM_COUNT) % ST25R3916_MENU_ITEM_COUNT;
+    displayST25R3916Menu(previousIndex);
+  }
+  if (isMenuButtonPress(BUTTON_DOWN, downHeld, repeatDelayMs)) {
+    byte previousIndex = st25r3916MenuIndex;
+    st25r3916MenuIndex = (st25r3916MenuIndex + 1) % ST25R3916_MENU_ITEM_COUNT;
+    displayST25R3916Menu(previousIndex);
+  }
+  if (buttonOK.isClick()) {
+    inST25R3916Placeholder = true;
+    // Do not let the click that opened this screen be reused after Back.
+    buttonOK.resetStates();
+    displayST25R3916Placeholder();
+    return;
+  }
+  if (buttonBack.isClick()) {
+    inST25R3916Submenu = false;
+    inST25R3916Placeholder = false;
+    buttonBack.resetStates();
+    displayGPIOMenu(display, gpioMenuIndex);
+  }
+}
+
+void handleGPIOSubmenu() {
+  if (inNRF24Submenu || inNRF24Config || inJammingMenu || inJammingActive || inSpectrumAnalyzer || inNRF24InitError) return handleNRF24Submenu();
+  if (inIButtonSubmenu) return handleIButtonSubmenu();
+  if (inST25R3916Submenu) return handleST25R3916Submenu();
+  static MenuButtonState upHeld;
+  static MenuButtonState downHeld;
+  buttonUp.tick(); buttonDown.tick(); buttonOK.tick(); buttonBack.tick();
+  if (inGPIOPlaceholder) {
+    if (buttonOK.isClick() || buttonBack.isClick()) {
+      inGPIOPlaceholder = false;
+      displayGPIOMenu(display, gpioMenuIndex);
+    }
+    return;
+  }
+  const unsigned long repeatDelayMs = getMenuSubmenuRepeatDelay(submenu == 1);
+  if (isMenuButtonPress(BUTTON_UP, upHeld, repeatDelayMs)) {
+    byte previousIndex = gpioMenuIndex;
+    gpioMenuIndex = (gpioMenuIndex - 1 + GPIO_MENU_ITEM_COUNT) % GPIO_MENU_ITEM_COUNT;
+    displayGPIOMenu(display, gpioMenuIndex, previousIndex);
+  }
+  if (isMenuButtonPress(BUTTON_DOWN, downHeld, repeatDelayMs)) {
+    byte previousIndex = gpioMenuIndex;
+    gpioMenuIndex = (gpioMenuIndex + 1) % GPIO_MENU_ITEM_COUNT;
+    displayGPIOMenu(display, gpioMenuIndex, previousIndex);
+  }
+  if (buttonOK.isClick()) {
+    Serial.printf("GPIO option: %s\n", gpioMenuItems[gpioMenuIndex]);
+    switch (gpioMenuIndex) {
+      case 0:
+        if (!ensureSDReadyInteractive(true)) {
+          displayGPIOMenu(display, gpioMenuIndex);
+          return;
+        }
+        loadIButtonConfig();
+        inIButtonSubmenu = true;
+        iButtonState = IBUTTON_MENU;
+        iButtonMenuIndex = 0;
+        displayIButtonMenu();
+        break;
+      case 1:
+        inNRF24Submenu = true;
+        nrf24MenuIndex = 0;
+        loadNRF24Config();
+        displayNRF24Menu();
+        break;
+      case 2:
+        inST25R3916Submenu = true;
+        inST25R3916Placeholder = false;
+        st25r3916MenuIndex = 0;
+        buttonUp.resetStates();
+        buttonDown.resetStates();
+        buttonOK.resetStates();
+        buttonBack.resetStates();
+        displayST25R3916Menu();
+        return;
+    }
+  }
+  if (buttonBack.isClick()) {
+    inGPIOPlaceholder = false;
+    inST25R3916Submenu = false;
+    inST25R3916Placeholder = false;
+    returnToMainMenu();
+    Serial.println(F("Back to main menu"));
+  }
+}
