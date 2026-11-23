@@ -32,19 +32,16 @@ A DIY multi-function pentesting device built on the [ESP-HACK](https://github.co
 
 ## Project Status
 
+**ESPectro-0** (prototype) — functional, pending enclosure:
+
 - [x] Components selected and ordered (BOM)
-- [x] Firmware built and flashed — ESP-HACK **v1.3**, `SH1106` display environment, jammer functionality disabled (see [Firmware Installation](#firmware-installation))
-- [x] Custom PCB received — official ESP-HACK reference design (Gerbers by Teapot174 / Dripside, from the upstream repository's `/others` folder), manufactured via JLCPCB
-- [x] Breadboard prototyping discontinued — persistent contact reliability issues with the ESP32 header pins (see [Known Issues & Design Decisions](#known-issues--design-decisions))
-- [x] SMD tactile buttons soldered and verified (UP / DOWN / OK / BACK)
-- [x] OLED display soldered and verified (SDA→G21, SCL→G22) — boot logo and menu render correctly
-- [x] All modules mounted on 2.54 mm female headers (CC1101, microSD, OLED, IR) and ESP32 seated
-- [x] Device boots on the assembled PCB — firmware menu, button navigation and display confirmed working
-- [ ] microSD module — functional verification (correct 3.3 V module fitted; read/write test pending)
-- [ ] CC1101 module — functional test (Sub-GHz) pending
-- [ ] IR emitter/receiver — functional test pending
-- [ ] 3D-printed enclosure
-- [ ] Full build documentation with photos
+- [x] Assembled on the ESP-HACK reference PCB (left flat / un-snapped)
+- [x] Firmware built and flashed (ESPectro fork, SH1106 environment)
+- [x] All modules wired and tested: OLED, Wi-Fi, BT, microSD, CC1101 (SubGHz), IR TX/RX
+- [x] Wiring and pinouts documented ([Assembly Notes](docs/ASSEMBLY-NOTES.md))
+- [ ] Enclosure / 3D case
+- [ ] Final photos of the assembled device
+- [ ] Build the remaining units (snap the V-score + stack)
 
 ## Bill of Materials
 
