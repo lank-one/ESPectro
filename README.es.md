@@ -68,7 +68,10 @@ _(Precios aproximados, IVA incluido; envío y herramientas de soldadura no inclu
 
 ## Guía de cableado
 
-El pinout siguiente procede directamente de la configuración del firmware ESP-HACK (`src/CONFIG.h`) — el mismo mapa de GPIO que usa la PCB de referencia oficial en la que se basa este montaje, así que aplica tanto si construyes sobre la PCB, sobre perfboard, o sobre breadboard para pruebas.
+Pinouts completos, detalles de cableado y lecciones aprendidas del montaje
+del prototipo ESPectro-0 están documentados aquí:
+
+📄 [Notas de montaje (ES)](docs/ASSEMBLY-NOTES.es.md) · [Assembly Notes (EN)](docs/ASSEMBLY-NOTES.md)
 
 ### Display OLED (SH1106, I²C) — ✅ Soldado y verificado
 
