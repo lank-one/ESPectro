@@ -90,7 +90,7 @@ Cada pulsador conecta una pata al GPIO indicado y la otra a GND (el firmware usa
 | OK | G33 |
 | BACK | G32 |
 
-### Módulo CC1101 433MHz (SPI) — 🔩 Soldado — prueba funcional pendiente
+### Módulo CC1101 433MHz (SPI) — ✅ Soldado y verificado
 
 | Pin del CC1101 | GPIO del ESP32 |
 |---|---|
@@ -102,7 +102,7 @@ Cada pulsador conecta una pata al GPIO indicado y la otra a GND (el firmware usa
 | CSN (CS) | G5 |
 | GDO0 | G4 |
 
-### Módulo microSD (bus SPI dedicado) — 🔩 Soldado (módulo correcto de 3.3 V) — prueba funcional pendiente
+### Módulo microSD (bus SPI dedicado) — ✅ Soldado y verificado
 
 | Pin del módulo SD | GPIO del ESP32 |
 |---|---|
@@ -115,27 +115,13 @@ Cada pulsador conecta una pata al GPIO indicado y la otra a GND (el firmware usa
 
 > La tarjeta SD funciona con su propia instancia SPI dedicada en firmware (`sdSPI`), independiente del bus SPI hardware del CC1101 de arriba — no comparten pines.
 
-### Emisor / receptor IR — 🔩 Soldado — prueba funcional pendiente
+### Emisor / receptor IR — ✅ Soldado y verificado
 
 | Señal | GPIO del ESP32 |
 |---|---|
 | IR TX (emisor) | G16 |
 | IR RX (receptor) | G35 |
 
-### Header GPIO de expansión (opcional)
-
-Reservado para módulos adicionales (iButton, NRF24, ST25R3916/RFID):
-
-| Etiqueta | GPIO del ESP32 | Compartido con |
-|---|---|---|
-| GPIO_A | G16 | IR TX |
-| GPIO_B | G2 | — |
-| GPIO_C | G18 | CC1101 SCK |
-| GPIO_D | G23 | CC1101 MOSI |
-| GPIO_E | G19 | CC1101 MISO |
-| GPIO_F | G25 | — |
-
-Estos pines están multiplexados con otros periféricos de forma intencional — solo cablea un módulo adicional a un pin compartido si el periférico correspondiente no está montado en tu build.
 
 ## Problemas conocidos y decisiones de diseño
 
@@ -150,6 +136,8 @@ Estos pines están multiplexados con otros periféricos de forma intencional —
 Las placas se pidieron a través de **JLCPCB**, con una llegada estimada de **7 a 10 días hábiles**.
 
 > **Nota sobre la reutilización:** los archivos Gerber no son un diseño propio de este repositorio — pertenecen al proyecto original ESP-HACK. Si los incorporas a tu propio repo en lugar de solo enlazar a la fuente, mantén la atribución original y revisa la licencia del repositorio original antes de redistribuirlos.
+
+📄 **Notas de montaje completas:** [Notas de montaje (ES)](docs/ASSEMBLY-NOTES.es.md) · [Assembly Notes (EN)](docs/ASSEMBLY-NOTES.md)
 
 ## Instalación del firmware
 
