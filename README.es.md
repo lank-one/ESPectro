@@ -257,3 +257,16 @@ Si tienes dudas sobre si un caso de uso concreto es legal en tu país, consulta 
 - **Diseño de la PCB de referencia:** Teapot174 y Dripside — archivos Gerber publicados en la carpeta `/others` del repositorio original
 - **Montaje de hardware, documentación de cableado y este repositorio:** [lank-one](https://github.com/lank-one)
 
+## Licencia
+
+Este repositorio contiene dos partes con licencias distintas:
+
+- **Documentación, notas de hardware y branding** (todo lo que está fuera de
+  `firmware/`): bajo **Licencia MIT** — ver [`LICENSE`](LICENSE).
+- **Firmware** (la carpeta `firmware/`): bajo
+  **GNU Affero General Public License v3.0 (AGPL-3.0)** — ver
+  [`firmware/LICENSE`](firmware/LICENSE). Es un fork de
+  [ESP-HACK](https://github.com/Teapot174/ESP-HACK) de **Teapot174** y
+  hereda su licencia. Ver [`firmware/NOTICE.md`](firmware/NOTICE.md) para la
+  atribución y la lista de cambios.
+
