@@ -32,19 +32,16 @@ Un dispositivo DIY multifunción de pentesting basado en el firmware [ESP-HACK](
 
 ## Estado del proyecto
 
+**ESPectro-0** (prototipo) — funcional, pendiente de carcasa:
+
 - [x] Componentes seleccionados y pedidos (BOM)
-- [x] Firmware compilado y flasheado — ESP-HACK **v1.3**, entorno de display `SH1106`, funcionalidad de jammer deshabilitada (ver [Instalación del firmware](#instalación-del-firmware))
-- [x] PCB personalizada recibida — diseño de referencia oficial de ESP-HACK (Gerbers de Teapot174 / Dripside, publicados en la carpeta `/others` del repositorio original), fabricada por JLCPCB
-- [x] Prototipado en breadboard descartado definitivamente — problemas persistentes de contacto en los pines del header del ESP32 (ver [Problemas conocidos y decisiones de diseño](#problemas-conocidos-y-decisiones-de-diseño))
-- [x] Botones táctiles SMD soldados y verificados (UP / DOWN / OK / BACK)
-- [x] Display OLED soldado y verificado (SDA→G21, SCL→G22) — el boot logo y el menú se renderizan correctamente
-- [x] Todos los módulos montados sobre tiras de pines hembra 2,54 mm (CC1101, microSD, OLED, IR) y ESP32 insertado
-- [x] El dispositivo arranca en la PCB montada — menú del firmware, navegación con botones y pantalla funcionando
-- [ ] Módulo microSD — verificación funcional (módulo correcto de 3.3 V ya montado; prueba de lectura/escritura pendiente)
-- [ ] Módulo CC1101 — prueba funcional (Sub-GHz) pendiente
-- [ ] Emisor/receptor IR — prueba funcional pendiente
-- [ ] Carcasa impresa en 3D
-- [ ] Documentación completa del montaje con fotos
+- [x] Montado sobre la PCB de referencia de ESP-HACK (sin separar / plano)
+- [x] Firmware compilado y flasheado (fork ESPectro, entorno SH1106)
+- [x] Todos los módulos cableados y probados: OLED, Wi-Fi, BT, microSD, CC1101 (SubGHz), IR TX/RX
+- [x] Cableado y pinouts documentados ([Notas de montaje](docs/ASSEMBLY-NOTES.es.md))
+- [ ] Carcasa / case 3D
+- [ ] Fotos finales del dispositivo montado
+- [ ] Montar las unidades restantes (separar por el V-score + apilar)
 
 ## Lista de materiales
 
