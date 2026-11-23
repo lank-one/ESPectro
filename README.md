@@ -256,3 +256,16 @@ If you are unsure whether a specific use case is legal in your country, consult 
 - **Firmware:** [ESP-HACK](https://github.com/Teapot174/ESP-HACK) by Teapot174, licensed under AGPL-3.0
 - **Reference PCB design:** Teapot174 and Dripside — Gerber files published in the upstream repository's `/others` folder
 - **Hardware build, wiring documentation, and this repository:** [lank-one](https://github.com/lank-one)
+
+## License
+
+This repository contains two separately licensed parts:
+
+- **Documentation, hardware notes and branding** (everything outside
+  `firmware/`): licensed under the **MIT License** — see [`LICENSE`](LICENSE).
+- **Firmware** (the `firmware/` folder): licensed under the
+  **GNU Affero General Public License v3.0 (AGPL-3.0)** — see
+  [`firmware/LICENSE`](firmware/LICENSE). It is a fork of
+  [ESP-HACK](https://github.com/Teapot174/ESP-HACK) by **Teapot174** and
+  inherits its license. See [`firmware/NOTICE.md`](firmware/NOTICE.md) for
+  attribution and the list of changes.
