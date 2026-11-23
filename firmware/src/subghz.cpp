@@ -2640,26 +2640,19 @@ void OLED_printJammer() {
   display.setTextWrap(false);
   display.setCursor(72, 13);
   display.print(String(frequency, 2) + "MHz");
-  display.setCursor(65, 42);
-  display.print(isJamming ? "Jamming..." : "Press OK");
-  if (!isJamming) {
-    display.setCursor(65, 51);
-    display.print("to start");
-  }
+    display.setCursor(65, 42);
+  display.print("DISABLED");
+  display.setCursor(65, 51);
+  display.print("(legal)");
   display.display();
 }
 
 void startJamming() {
-  Serial.println(F("Starting jammer"));
-  if (!ensureCC1101Initialized()) return;
-  ELECHOUSE_cc1101.setModulation(0);
-  ELECHOUSE_cc1101.setMHZ(frequency);
-  ELECHOUSE_cc1101.setPA(12);
-  ELECHOUSE_cc1101.setDeviation(0);
-  ELECHOUSE_cc1101.setRxBW(270.0);
-  ELECHOUSE_cc1101.SetTx();
-  ELECHOUSE_cc1101.SpiWriteReg(0x3E, 0xFF);
-  ELECHOUSE_cc1101.SpiWriteReg(0x35, 0x60);
+  // Jamming DISABLED on purpose in ESPectro.
+  // RF jamming is illegal in Spain (Ley 11/2022) and most jurisdictions.
+  // This is a deliberate no-op: the radio is never put into jamming TX.
+  Serial.println(F("Jammer disabled in ESPectro firmware"));
+  return;
 }
 
 void stopJamming() {
