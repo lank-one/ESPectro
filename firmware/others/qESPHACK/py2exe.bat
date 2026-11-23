@@ -1,1 +1,0 @@
-pyinstaller --onefile --add-binary "esptool.exe;." --icon=logo.png qESPHACK.py
