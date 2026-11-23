@@ -20,19 +20,29 @@ screen.
 
 ## Changes made in this fork
 
-Cosmetic / branding and minor functional changes only — the core
-functionality remains that of ESP-HACK:
+Branding changes plus one deliberate functional change (the RF jammer is
+disabled). The rest of the ESP-HACK functionality is unchanged:
 
 - Rebranded the on-device UI to **ESPectro**: boot logo, standby / screensaver
   graphic, About screen, and the BLE device / manufacturer identity.
 - Added custom **category icons** for the main menu (Pages style).
-- Re-themed the **"SD card not detected"** icon and the **SubGHz Jammer** and
-  **Bruteforce** screens with ESPectro artwork.
+- Re-themed the **"SD card not detected"** icon and the **SubGHz Jammer**,
+  **Bruteforce**, **SubGHz Read / Saved** and **IR Read** screens with ESPectro
+  artwork.
 - **Removed the GPIO entry** from the main menu (the ESPectro build does not
   populate the GPIO add-on modules).
+- **Disabled the SubGHz RF jammer** (`startJamming()` is a deliberate no-op; the
+  Jammer screen shows "DISABLED"). RF jamming is illegal in Spain
+  (Ley 11/2022) and in most jurisdictions.
 - Changed a **factory default** (default menu style set to "Pages").
 
 ## Third-party components
 
+Bundled from the upstream ESP-HACK project, under their own licenses:
+
 - **heatshrink** — data compression library by Scott Vokes
   (`vokes.s@gmail.com`). Its authorship notice is retained in the source.
+- **OneWireHub** — 1-Wire slave/hub library, under its own license
+  (see `firmware/lib/OneWireHub/LICENSE.md`).
+- **BadUSB-lib** — BLE / USB HID keyboard & mouse library used for the
+  BadUSB / BadBLE features.
