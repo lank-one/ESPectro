@@ -141,96 +141,43 @@ Boards were ordered through **JLCPCB**, with an estimated delivery of **7–10 b
 
 ## Firmware Installation
 
-> This build targets **ESP-HACK `FW_v1.3`** — the latest and final upstream release (the author archived the repository, read-only, in August 2026).
-
-ESP-HACK is built with:
-
-```ini
-[platformio]
-default_envs =
-    SH1106
-    SSD1306
-
-[env]
-platform = espressif32
-board = esp32dev
-framework = arduino
-monitor_speed = 115200
-board_build.partitions = partitions_ota.csv
-
-lib_deps =
-    adafruit/Adafruit SH110X@^2.1.14
-    adafruit/Adafruit SSD1306@^2.5.17
-    gyverlibs/GyverButton@^3.8
-    crankyoldgit/IRremoteESP8266@^2.9.0
-    lsatan/SmartRC-CC1101-Driver-Lib@^3.0.2
-    sui77/rc-switch@^2.6.4
-    h2zero/NimBLE-Arduino@^2.5.0
-    nrf24/RF24@^1.6.1
-    paulstoffregen/OneWire@^2.3.8
-    olikraus/U8g2_for_Adafruit_GFX@^1.8.0
-
-extra_scripts =
-    post:build.py
-
-[env:SH1106]
-build_flags =
-    -Wl,-z,muldefs
-    -D DISPLAY_TYPE=DISPLAY_SH1106
-
-[env:SSD1306]
-build_flags =
-    -Wl,-z,muldefs
-    -D DISPLAY_TYPE=DISPLAY_SSD1306
-```
-
-This build uses the **`SH1106`** environment, matching the OLED module in the [Bill of Materials](#bill-of-materials). Pin mapping and the firmware version constant both live in `src/CONFIG.h` — see the [Wiring Guide](#wiring-guide) for the complete GPIO map used by this build.
+The ESPectro firmware lives in this repo under [`firmware/`](firmware/). It is a
+fork of [ESP-HACK](https://github.com/Teapot174/ESP-HACK) by **Teapot174** —
+see [`firmware/NOTICE.md`](firmware/NOTICE.md) for attribution and changes.
 
 ### Prerequisites
 
-- [Visual Studio Code](https://code.visualstudio.com/) with the [PlatformIO IDE extension](https://platformio.org/platformio-ide), **or** the [PlatformIO Core CLI](https://docs.platformio.org/en/latest/core/installation/index.html)
-- A USB data cable connecting the ESP32-WROOM-32 board to your computer
-- The correct USB-to-UART driver for your board (typically CP2102 or CH340) installed on your host OS
+- [VS Code](https://code.visualstudio.com/) with the **PlatformIO** extension
+  (or PlatformIO Core / `pio` CLI)
+- A **USB-C data cable** (not charge-only)
+- A USB-to-UART driver if your board needs it (CP2102 or CH340)
 
 ### Steps
 
-1. **Clone the upstream firmware.** The original repository is archived (read-only), so fork it on GitHub first if you plan to make changes, then clone your fork (or the original, for a straight build):
-```bash
-   git clone --branch v1.3 https://github.com/Teapot174/ESP-HACK.git
-   cd ESP-HACK
-```
-2. **Open the project in PlatformIO.** In VS Code: `File → Open Folder` → select the cloned `ESP-HACK` folder. PlatformIO detects `platformio.ini` automatically and resolves the `lib_deps` dependencies on first build.
-3. **(Recommended) Disable jammer functionality.** ESP-HACK includes a Sub-GHz jammer (`startJamming()` / `stopJamming()` in `src/subghz.cpp`) that drives the CC1101 into continuous-carrier transmission. This build disables it by stubbing out `startJamming()` so the menu entry still exists but never keys the radio:
-```cpp
-   void startJamming() {
-     Serial.println(F("Jammer disabled in this build"));
-     return;
-   }
-```
-   Replace the original function body (the block that calls `ELECHOUSE_cc1101.SetTx()` and writes registers `0x3E`/`0x35`) with the snippet above. See the [Legal Disclaimer](#legal-disclaimer) for why jamming is excluded from this build.
-4. **Connect the ESP32 board** via USB and confirm it is detected:
-```bash
+1. Clone this repository and enter the firmware folder:
+   ```bash
+   git clone https://github.com/lank-one/ESPectro.git
+   cd ESPectro/firmware
+   ```
+2. Open the `firmware/` folder in **VS Code** (PlatformIO auto-detects it).
+3. Connect the ESP32 via USB-C and confirm it's detected:
+   ```bash
    pio device list
-```
-5. **Build the firmware**, specifying the environment that matches your display:
-```bash
-   pio run -e SH1106
-```
-6. **Flash it**, using the same environment flag so PlatformIO applies the correct `partitions_ota.csv` partition scheme automatically:
-```bash
+   ```
+4. Build and flash using the **SH1106** environment:
+   ```bash
    pio run -e SH1106 --target upload
-```
-7. **Monitor the serial output** to confirm a successful boot:
-```bash
-   pio device monitor -b 115200
-```
-8. **(Optional) SD card content.** ESP-HACK can load additional content/updates from a FAT32-formatted microSD card — see the [ESP-HACK wiki](https://teapot174.github.io) for the expected folder structure.
+   ```
+   (In the PlatformIO toolbar you can also just press **Upload** — it compiles
+   and flashes in one step.)
+5. *(Optional)* Open the serial monitor: `pio device monitor`
+6. *(Optional)* Prepare the microSD — see the
+   [Assembly Notes](docs/ASSEMBLY-NOTES.md) and the
+   [firmware README](firmware/README.md).
 
-> ⚠️ Flash this on a bare ESP32 first, before final assembly — it lets you confirm the board boots correctly without mixing firmware issues with wiring issues.
-
-For troubleshooting and feature usage beyond this build guide, see the original documentation:
-- Repository: https://github.com/Teapot174/ESP-HACK
-- Wiki: https://teapot174.github.io
+> If flashing fails with *"chip stopped responding"*, retry, use a good data
+> cable on a direct USB port, and add `upload_speed = 115200` to
+> `platformio.ini`.
 
 ## Legal Disclaimer
 
