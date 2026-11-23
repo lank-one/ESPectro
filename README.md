@@ -69,7 +69,10 @@ _(Approximate prices, VAT included; shipping and soldering tools not included.)_
 
 ## Wiring Guide
 
-The pinout below is sourced directly from ESP-HACK's firmware configuration (`src/CONFIG.h`) — the same GPIO map used by the official reference PCB this build is based on, so it applies whether you build on the PCB, on perfboard, or on a breadboard for testing.
+Full pinouts, wiring details and lessons learned from the ESPectro-0
+prototype build are documented here:
+
+📄 [Assembly Notes (EN)](docs/ASSEMBLY-NOTES.md) · [Notas de montaje (ES)](docs/ASSEMBLY-NOTES.es.md)
 
 ### OLED Display (SH1106, I²C) — ✅ Soldered & verified
 
