@@ -91,7 +91,7 @@ Each button connects one leg to the listed GPIO, the other to GND (firmware uses
 | OK | G33 |
 | BACK | G32 |
 
-### CC1101 433MHz Module (SPI) — 🔩 Soldered — functional test pending
+### CC1101 433MHz Module (SPI) — ✅ Soldered & verified
 
 | CC1101 Pin | ESP32 GPIO |
 |---|---|
@@ -103,7 +103,7 @@ Each button connects one leg to the listed GPIO, the other to GND (firmware uses
 | CSN (CS) | G5 |
 | GDO0 | G4 |
 
-### microSD Module (dedicated SPI bus) — 🔩 Soldered (correct 3.3 V module) — functional test pending
+### microSD Module (dedicated SPI bus) — ✅ Soldered & verified
 
 | SD Module Pin | ESP32 GPIO |
 |---|---|
@@ -116,27 +116,12 @@ Each button connects one leg to the listed GPIO, the other to GND (firmware uses
 
 > The SD card runs on its own dedicated SPI instance in firmware (`sdSPI`), separate from the CC1101's hardware SPI bus above — the two do not share pins.
 
-### Infrared Emitter / Receiver — 🔩 Soldered — functional test pending
+### Infrared Emitter / Receiver — ✅ Soldered & verified
 
 | Signal | ESP32 GPIO |
 |---|---|
 | IR TX (emitter) | G16 |
 | IR RX (receiver) | G35 |
-
-### Optional GPIO Expansion Header
-
-Reserved for add-on modules (iButton, NRF24, ST25R3916/RFID):
-
-| Label | ESP32 GPIO | Shared with |
-|---|---|---|
-| GPIO_A | G16 | IR TX |
-| GPIO_B | G2 | — |
-| GPIO_C | G18 | CC1101 SCK |
-| GPIO_D | G23 | CC1101 MOSI |
-| GPIO_E | G19 | CC1101 MISO |
-| GPIO_F | G25 | — |
-
-These pins are multiplexed with other peripherals by design — only wire an add-on to a shared pin if the corresponding peripheral isn't populated on your build.
 
 ## Known Issues & Design Decisions
 
@@ -151,6 +136,8 @@ These pins are multiplexed with other peripherals by design — only wire an add
 Boards were ordered through **JLCPCB**, with an estimated delivery of **7–10 business days**.
 
 > **Note on reuse:** the Gerber files are not this repository's own design — they belong to the upstream ESP-HACK project. If you mirror them into your own repo rather than only linking to the source, keep the original attribution intact and check the upstream repository's license before redistributing.
+
+📄 **Full build notes:** [Assembly Notes (EN)](docs/ASSEMBLY-NOTES.md) · [Notas de montaje (ES)](docs/ASSEMBLY-NOTES.es.md)
 
 ## Firmware Installation
 
