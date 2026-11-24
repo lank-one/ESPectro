@@ -1,0 +1,14 @@
+# Editor / IDE
+.vscode/
+.idea/
+
+# PlatformIO build output
+.pio/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.token
